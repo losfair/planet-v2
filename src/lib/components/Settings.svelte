@@ -88,10 +88,47 @@
 	function loadEmails() {
 		loadJson<{ emails: string[] }>('/me/api/v1/emails').then((x) => (emails = x.emails));
 	}
-	function exportNotes() {
-		window.location.href = '/me/api/v1/export';
+
+	// --- export: ZIP of <note-id>.md files (matches the original) ---
+	let exportBusy = $state(false);
+	let exportProgress = $state(0);
+
+	async function exportNotes() {
+		exportBusy = true;
+		exportProgress = 0;
+		try {
+			const { default: JSZip } = await import('jszip');
+			const zip = new JSZip();
+			let cursor = '';
+			for (;;) {
+				const rsp = await loadJson<{
+					snippets: { id: string; markdown: string }[];
+					cursor: string | null;
+				}>(
+					`/api/v1/notes?username=${encodeURIComponent(username)}&cursor=${encodeURIComponent(cursor)}&limit=100`
+				);
+				for (const note of rsp.snippets) zip.file(`${note.id}.md`, note.markdown);
+				exportProgress += rsp.snippets.length;
+				if (!rsp.cursor) break;
+				cursor = rsp.cursor;
+			}
+			const blob = await zip.generateAsync({ type: 'blob' });
+			const now = new Date();
+			const filename = `planet_export_${username}_${now.toISOString().split('T')[0]}-${now.getTime()}.zip`;
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = filename;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (e) {
+			toast.show({ title: 'Export failed', description: String(e), status: 'error' });
+		} finally {
+			exportBusy = false;
+		}
 	}
 
+	// --- import: read an export ZIP and recreate notes ---
 	let importInput = $state<HTMLInputElement>();
 	let importBusy = $state(false);
 	let importResult = $state<number | null>(null);
@@ -102,15 +139,16 @@
 		importBusy = true;
 		importResult = null;
 		try {
-			const text = await file.text();
-			const rsp = await fetch('/me/api/v1/import', {
-				method: 'POST',
-				headers: { 'Content-Type': 'text/markdown' },
-				credentials: 'include',
-				body: text
-			});
-			if (!rsp.ok) throw new Error(await rsp.text());
-			const r = (await rsp.json()) as { imported: number };
+			const { default: JSZip } = await import('jszip');
+			const zip = await JSZip.loadAsync(file);
+			const notes: { id: string; markdown: string }[] = [];
+			for (const [name, entry] of Object.entries(zip.files)) {
+				if (entry.dir || !name.toLowerCase().endsWith('.md')) continue;
+				const markdown = await entry.async('string');
+				const id = name.replace(/\.md$/i, '').split('/').pop() || '';
+				notes.push({ id, markdown });
+			}
+			const r = await loadJson<{ imported: number }>('/me/api/v1/import', { notes });
 			importResult = r.imported;
 			toast.show({ title: `Imported ${r.imported} note(s)`, status: 'success' });
 			await invalidateAll();
@@ -187,17 +225,18 @@
 	{:else}
 		<section>
 			<h3>Export</h3>
-			<p class="muted">Export all your notes in Markdown format.</p>
-			<Button colorScheme="gray" onclick={exportNotes}>Export</Button>
+			<p class="muted">Export all your notes in Markdown format (a ZIP of .md files).</p>
+			<Button colorScheme="gray" loading={exportBusy} onclick={exportNotes}>Export</Button>
+			{#if exportBusy}<p class="muted sm">Loaded {exportProgress} notes…</p>{/if}
 		</section>
 
 		<section>
 			<h3>Import</h3>
-			<p class="muted">Import notes from a Planet Markdown export file.</p>
+			<p class="muted">Import notes from a Planet export ZIP.</p>
 			<input
 				class="file"
 				type="file"
-				accept=".md,.markdown,text/markdown,text/plain"
+				accept=".zip,application/zip"
 				bind:this={importInput}
 				onchange={importNotes}
 			/>
