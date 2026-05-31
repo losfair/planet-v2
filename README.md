@@ -83,6 +83,16 @@ src/
     img/[...path]              local image store (dev fallback)
 ```
 
+## Database migrations
+
+Schema changes are versioned via SQLite's `PRAGMA user_version` and applied on
+startup by `runMigrations()` in `src/lib/server/migrations.ts`. Migration 1 is
+the frozen baseline (`schema.sql`). **To change the schema, append a new
+migration** with the next version number and its `ALTER TABLE` / `CREATE`
+statements — don't edit released migrations or the baseline. Fresh databases
+replay every migration in order; existing databases run only the pending ones,
+each in a transaction.
+
 ## Not yet ported
 
 Features that depended on third-party services or heavy client libraries are
