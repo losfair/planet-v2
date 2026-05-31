@@ -1,0 +1,236 @@
+/* ------------------------------------------------------------------ *
+ * Design system — a faithful reproduction of the Chakra UI defaults
+ * the original Planet/Bluebird frontend used, so the ported SvelteKit
+ * UI looks identical. Color scales are the Chakra default palette.
+ * ------------------------------------------------------------------ */
+
+:root {
+	/* gray */
+	--chakra-colors-gray-50: #f7fafc;
+	--chakra-colors-gray-100: #edf2f7;
+	--chakra-colors-gray-200: #e2e8f0;
+	--chakra-colors-gray-300: #cbd5e0;
+	--chakra-colors-gray-400: #a0aec0;
+	--chakra-colors-gray-500: #718096;
+	--chakra-colors-gray-600: #4a5568;
+	--chakra-colors-gray-700: #2d3748;
+	--chakra-colors-gray-800: #1a202c;
+	--chakra-colors-gray-900: #171923;
+	/* teal */
+	--chakra-colors-teal-50: #e6fffa;
+	--chakra-colors-teal-100: #b2f5ea;
+	--chakra-colors-teal-200: #81e6d9;
+	--chakra-colors-teal-300: #4fd1c5;
+	--chakra-colors-teal-400: #38b2ac;
+	--chakra-colors-teal-500: #319795;
+	--chakra-colors-teal-600: #2c7a7b;
+	--chakra-colors-teal-700: #285e61;
+	/* blue */
+	--chakra-colors-blue-50: #ebf8ff;
+	--chakra-colors-blue-100: #bee3f8;
+	--chakra-colors-blue-200: #90cdf4;
+	--chakra-colors-blue-300: #63b3ed;
+	--chakra-colors-blue-400: #4299e1;
+	--chakra-colors-blue-500: #3182ce;
+	--chakra-colors-blue-600: #2b6cb0;
+	--chakra-colors-blue-700: #2c5282;
+	/* red */
+	--chakra-colors-red-400: #fc8181;
+	--chakra-colors-red-500: #e53e3e;
+	--chakra-colors-red-600: #c53030;
+	/* orange */
+	--chakra-colors-orange-300: #f6ad55;
+	--chakra-colors-orange-400: #ed8936;
+	--chakra-colors-orange-500: #dd6b20;
+	/* green */
+	--chakra-colors-green-400: #48bb78;
+	--chakra-colors-green-500: #38a169;
+	--chakra-colors-green-600: #2f855a;
+	/* purple / yellow / pink */
+	--chakra-colors-purple-500: #805ad5;
+	--chakra-colors-yellow-400: #ecc94b;
+	--chakra-colors-pink-500: #d53f8c;
+
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--shadow-snippetHover: 0px 8px 24px rgba(150, 150, 150, 0.15);
+
+	--radius-sm: 0.125rem;
+	--radius-md: 0.375rem;
+	--radius-lg: 0.5rem;
+
+	font-family:
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif,
+		'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+/* Semantic tokens — light */
+:root,
+:root[data-theme='light'] {
+	--bg: #fafafa;
+	--card-bg: #ffffff;
+	--sidebar-bg: var(--chakra-colors-gray-100);
+	--text: #000000;
+	--text-secondary: var(--chakra-colors-gray-500);
+	--border: var(--chakra-colors-gray-200);
+	--accent: var(--chakra-colors-teal-500);
+	--header-bg: rgba(255, 255, 255, 0.9);
+	--tab-bg: var(--chakra-colors-blue-100);
+	--author-bg: var(--chakra-colors-blue-100);
+	--icon: #000000;
+	--hover-bg: var(--chakra-colors-gray-100);
+	--code-bg: var(--chakra-colors-gray-100);
+}
+
+:root[data-theme='dark'] {
+	--bg: #171923;
+	--card-bg: var(--chakra-colors-gray-800);
+	--sidebar-bg: var(--chakra-colors-gray-800);
+	--text: #ffffff;
+	--text-secondary: var(--chakra-colors-gray-400);
+	--border: rgba(255, 255, 255, 0.08);
+	--accent: var(--chakra-colors-teal-400);
+	--header-bg: rgba(0, 0, 0, 0.9);
+	--tab-bg: var(--chakra-colors-gray-600);
+	--author-bg: var(--chakra-colors-gray-700);
+	--icon: #ffffff;
+	--hover-bg: var(--chakra-colors-gray-700);
+	--code-bg: var(--chakra-colors-gray-700);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	overflow-x: hidden;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	overflow-wrap: break-word;
+	font-size: 16px;
+	line-height: 1.5;
+	transition: background 0.15s ease;
+}
+
+@media screen and (min-width: 48em) {
+	html,
+	body {
+		height: 100%;
+		overscroll-behavior: none;
+	}
+}
+
+a {
+	color: inherit;
+	word-break: break-all;
+}
+
+/* ---------------- note content (ported from global.css) ----------- */
+.raw-snippet > :not(div) {
+	line-height: 1.8;
+	font-size: 14px;
+	overflow-wrap: break-word;
+}
+.raw-snippet > :not(div) a {
+	color: var(--chakra-colors-teal-500);
+}
+.raw-snippet > :not(:last-child),
+.raw-snippet > :not(div) :not(:last-child) {
+	margin-bottom: 10px;
+}
+.raw-snippet > ul,
+.raw-snippet > :not(div) ul {
+	padding-left: 18px;
+}
+.raw-snippet > ol,
+.raw-snippet > :not(div) ol {
+	padding-left: 18px;
+}
+.raw-snippet > pre {
+	overflow-x: auto;
+	background: var(--code-bg);
+	padding: 10px;
+	border-radius: var(--radius-md);
+	font-size: 13px;
+}
+.raw-snippet code {
+	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+	font-size: 0.9em;
+}
+.raw-snippet > :not(pre) > code,
+.raw-snippet p > code {
+	background: var(--code-bg);
+	padding: 1px 5px;
+	border-radius: var(--radius-sm);
+}
+.raw-snippet > h1 {
+	font-weight: bold;
+	font-size: 16px;
+}
+.raw-snippet > h2,
+.raw-snippet > h3 {
+	font-weight: bold;
+}
+.raw-snippet img {
+	max-width: 100%;
+	border-radius: var(--radius-md);
+}
+.raw-snippet .notion-link,
+.raw-snippet .forward-link,
+.raw-snippet .at-mention {
+	text-decoration: none;
+	font-weight: bold;
+}
+.raw-snippet .notion-link *,
+.raw-snippet .forward-link *,
+.raw-snippet .at-mention * {
+	margin-bottom: 0;
+}
+.raw-snippet .at-mention:hover {
+	text-decoration-color: var(--chakra-colors-gray-500);
+}
+.raw-snippet-dark > blockquote {
+	border-left: 2px solid var(--chakra-colors-gray-500);
+	background: var(--chakra-colors-gray-700);
+	color: #edf2f7;
+	padding: 10px 10px;
+}
+.raw-snippet-light > blockquote {
+	border-left: 2px solid #4a5568;
+	background: #edf2f7;
+	color: #4a5568;
+	padding: 10px 10px;
+}
+.raw-snippet > table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.raw-snippet > table th {
+	text-align: left;
+}
+.raw-snippet > table td {
+	padding-top: 6px;
+	padding-bottom: 6px;
+	text-align: left;
+}
+.raw-snippet-light > table td {
+	border-bottom: 1px solid var(--chakra-colors-gray-300);
+}
+.raw-snippet-dark > table td {
+	border-bottom: 1px solid var(--chakra-colors-gray-600);
+}
+.raw-snippet > table th:not(:last-child),
+.raw-snippet > table td:not(:last-child) {
+	padding-right: 10px;
+}
+
+.bluebird-no-scroll {
+	overflow: hidden;
+}
