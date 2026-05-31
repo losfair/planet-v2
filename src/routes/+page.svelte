@@ -1,48 +1,6 @@
 <script lang="ts">
-	import PricingCard from '$lib/components/PricingCard.svelte';
 	let { data } = $props();
 	const user = data.user;
-
-	const freeFeatures: [string, string][] = [
-		['Notes per month', 'Unlimited'],
-		['Nested hashtags', '✓'],
-		['Bidirectional links', '✓'],
-		['Data export', '✓'],
-		['RSS feed', '✓'],
-		['Save from Telegram', '✓'],
-		['Heatmap', '✓'],
-		['Article archives', '✓'],
-		['Dark mode', '✓'],
-		['Version history', '-'],
-		['Graph view', '-'],
-		['Link Notion pages', '-'],
-		['Image upload', '-'],
-		['AI image labeling', '-'],
-		['Image text recognition', '-'],
-		['Custom views', '-'],
-		['Verifiable timestamp', '-'],
-		['API', '-']
-	];
-	const proFeatures: [string, string][] = [
-		['Notes per month', 'Unlimited'],
-		['Nested hashtags', '✓'],
-		['Bidirectional links', '✓'],
-		['Data export', '✓'],
-		['RSS feed', '✓'],
-		['Save from Telegram', '✓'],
-		['Heatmap', '✓'],
-		['Article archives', '✓'],
-		['Dark mode', '✓'],
-		['Version history', '90 days'],
-		['Graph view', '✓'],
-		['Link Notion pages', '✓'],
-		['Image upload', '300/month'],
-		['AI image labeling', '✓'],
-		['Image text recognition', '✓'],
-		['Custom views', '✓'],
-		['Verifiable timestamp', '✓'],
-		['API', '✓']
-	];
 	const year = new Date().getFullYear();
 </script>
 
@@ -136,11 +94,6 @@
 	</section>
 
 	<div class="pricing">
-		<h2>Pricing</h2>
-		<div class="pricing-grid">
-			<PricingCard name="Free" price={0} features={freeFeatures} />
-			<PricingCard name="Pro" price={9} note="*14-day free trial" features={proFeatures} />
-		</div>
 		<p class="discord">Join our community on <a href="https://discord.gg/WRuX5SXQ2u">Discord</a>!</p>
 		<hr />
 		<footer>
@@ -306,19 +259,6 @@
 		padding: 60px 20px;
 		text-align: center;
 	}
-	.pricing h2 {
-		margin-bottom: 40px;
-	}
-	.pricing-grid {
-		display: flex;
-		gap: 16px;
-		max-width: 800px;
-		margin: 0 auto;
-		justify-content: center;
-	}
-	.pricing-grid > :global(*) {
-		flex: 1;
-	}
 	.discord {
 		padding-top: 45px;
 		font-size: 20px;
@@ -351,9 +291,6 @@
 		.card-inner {
 			flex-direction: column;
 			padding: 40px 20px;
-		}
-		.pricing-grid {
-			flex-direction: column;
 		}
 	}
 </style>

@@ -15,9 +15,6 @@
 	let displayName = $state('');
 	let description = $state('');
 	let fontFamily = $state('sans-serif');
-	let subscriptionExpiry = $state(0);
-	let subscriptionType = $state<string | undefined>(undefined);
-	let subscriptionCancellation = $state<string | undefined>(undefined);
 
 	// wayback machine
 	let wbWhere = $state('none');
@@ -33,9 +30,6 @@
 			displayName = u.displayName || '';
 			description = u.description || '';
 			fontFamily = u.contentFontFamily || 'sans-serif';
-			subscriptionExpiry = u.subscriptionExpiry || 0;
-			subscriptionType = u.subscriptionType;
-			subscriptionCancellation = u.subscriptionCancellation;
 			if (u.waybackMachine) {
 				wbWhere = u.waybackMachine.where || 'none';
 				wbAk = u.waybackMachine.ak || '';
@@ -98,11 +92,35 @@
 		window.location.href = '/me/api/v1/export';
 	}
 
-	const subLabel = $derived(
-		subscriptionExpiry
-			? `Pro ${subscriptionCancellation === 'canceled' || subscriptionType === 'freeTrial' ? 'until' : 'renewing at'} ${new Date(subscriptionExpiry).toLocaleString()}`
-			: 'Free'
-	);
+	let importInput = $state<HTMLInputElement>();
+	let importBusy = $state(false);
+	let importResult = $state<number | null>(null);
+
+	async function importNotes() {
+		const file = importInput?.files?.[0];
+		if (!file) return;
+		importBusy = true;
+		importResult = null;
+		try {
+			const text = await file.text();
+			const rsp = await fetch('/me/api/v1/import', {
+				method: 'POST',
+				headers: { 'Content-Type': 'text/markdown' },
+				credentials: 'include',
+				body: text
+			});
+			if (!rsp.ok) throw new Error(await rsp.text());
+			const r = (await rsp.json()) as { imported: number };
+			importResult = r.imported;
+			toast.show({ title: `Imported ${r.imported} note(s)`, status: 'success' });
+			await invalidateAll();
+		} catch (e) {
+			toast.show({ title: 'Import failed', description: String(e), status: 'error' });
+		} finally {
+			importBusy = false;
+			if (importInput) importInput.value = '';
+		}
+	}
 </script>
 
 <div class="settings">
@@ -119,17 +137,6 @@
 			<h3>Personal info</h3>
 			<div class="field"><label for="dn">Name</label><input id="dn" bind:value={displayName} maxlength="30" /></div>
 			<div class="field"><label for="bio">Bio</label><textarea id="bio" bind:value={description} rows="3" maxlength="500"></textarea></div>
-		</section>
-
-		<section>
-			<h3>Subscription</h3>
-			<div class="sub-row">
-				<span class="sub-label">{subLabel}</span>
-				{#if subscriptionType === 'freeTrial'}<span class="badge blue">Trial</span>{/if}
-			</div>
-			{#if subscriptionCancellation === 'canceled'}
-				<p class="muted">Plan will be canceled at the end of the current billing cycle.</p>
-			{/if}
 		</section>
 
 		<section>
@@ -185,13 +192,27 @@
 		</section>
 
 		<section>
-			<h3>Version history <span class="badge pro">PRO</span></h3>
+			<h3>Import</h3>
+			<p class="muted">Import notes from a Planet Markdown export file.</p>
+			<input
+				class="file"
+				type="file"
+				accept=".md,.markdown,text/markdown,text/plain"
+				bind:this={importInput}
+				onchange={importNotes}
+			/>
+			{#if importBusy}<p class="muted sm">Importing…</p>{/if}
+			{#if importResult !== null}<p class="muted sm">Imported {importResult} note(s).</p>{/if}
+		</section>
+
+		<section>
+			<h3>Version history</h3>
 			<p class="muted">View mutation logs from the last 90 days.</p>
 			<Button colorScheme="gray" href="/data/history" onclick={onClose}>Open</Button>
 		</section>
 
 		<section>
-			<h3>API <span class="badge pro">PRO</span></h3>
+			<h3>API</h3>
 			<p class="muted">Programmatic access to your planet.</p>
 			<div class="api-actions">
 				<Button colorScheme="gray" loading={tokenBusy} onclick={createToken}>Create token</Button>
@@ -289,14 +310,6 @@
 	.sm {
 		font-size: 13px;
 	}
-	.sub-row {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-	.sub-label {
-		font-weight: 600;
-	}
 	.badge {
 		font-size: 10px;
 		font-weight: 700;
@@ -305,13 +318,9 @@
 		background: var(--chakra-colors-gray-200);
 		color: var(--chakra-colors-gray-700);
 	}
-	.badge.blue {
-		background: var(--chakra-colors-blue-100);
-		color: var(--chakra-colors-blue-700);
-	}
-	.badge.pro {
-		background: var(--chakra-colors-teal-100);
-		color: var(--chakra-colors-teal-700);
+	.file {
+		font: inherit;
+		font-size: 14px;
 	}
 	.actions {
 		display: flex;

@@ -24,11 +24,6 @@ CREATE TABLE IF NOT EXISTS users (
   content_font_family   TEXT,                         -- 'serif' | 'monospace' | null
   note_view_v2          INTEGER NOT NULL DEFAULT 0,
   wayback_json          TEXT,                         -- {where, ak, sk} | null
-  -- subscription: 'paid' | 'freeTrial' | 'signUpFreeTrial' | null
-  subscription_type     TEXT,
-  subscription_exp      INTEGER,                      -- ms epoch
-  subscription_cancel   TEXT,                         -- 'canceled' | 'unknown' | null
-  subscription_sub_id   TEXT,
   openapi_invalidate_before INTEGER NOT NULL DEFAULT 0
 );
 

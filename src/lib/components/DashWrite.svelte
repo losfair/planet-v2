@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { loadJson, ApiError } from '$lib/client/api';
+	import { loadJson } from '$lib/client/api';
 	import { toast } from '$lib/client/toast.svelte';
 	import Button from './Button.svelte';
 	import Spinner from './Spinner.svelte';
@@ -71,11 +71,7 @@
 			await fetch(ticket.uploadUrl, { method: 'PUT', body: file, headers, credentials: 'include' });
 			content += `\n\n![Image](${ticket.finalUrl})`;
 		} catch (e) {
-			if (e instanceof ApiError && e.status === 402) {
-				toast.show({ title: 'Image upload requires a Pro plan.', status: 'info' });
-			} else {
-				toast.show({ title: 'Error', description: String(e), status: 'error' });
-			}
+			toast.show({ title: 'Error', description: String(e), status: 'error' });
 		} finally {
 			uploading = false;
 		}

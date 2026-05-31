@@ -158,19 +158,20 @@ function notify(fromUser: string, noteId: string, markdown: string) {
 
 export function createNote(
 	username: string,
-	input: { content: string; private: boolean }
+	input: { content: string; private: boolean; realTs?: number }
 ): { id: string } {
 	if (input.content.length > limits.maxNoteSize) {
 		throw new ApiError(400, 'Note too large');
 	}
 	return tx(() => {
 		const now = Date.now();
-		const id = genNoteId(username, now);
+		const realTs = input.realTs ?? now;
+		const id = genNoteId(username, realTs);
 		const html = renderMarkdown(input.content);
 		db.query(
 			`INSERT INTO notes (username, id, real_ts, edit_count, content_html, markdown, private, created_at, updated_at)
 			 VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?)`
-		).run(username, id, now, html, input.content, input.private ? 1 : 0, now, now);
+		).run(username, id, realTs, html, input.content, input.private ? 1 : 0, now, now);
 		reindex(username, id, input.content, input.private);
 		notify(username, id, input.content);
 		logEvent(username, 'create_note', id, { private: input.private });

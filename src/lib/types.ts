@@ -82,9 +82,6 @@ export type PublicUserInfo = {
 export type PrivateUserInfo = {
 	private: true;
 	openapiLastRevoke: number;
-	subscriptionExpiry: number;
-	subscriptionCancellation?: string;
-	subscriptionType?: 'paid' | 'freeTrial';
 	noteViewV2?: boolean;
 	waybackMachine?: { where: string; ak: string; sk: string };
 };

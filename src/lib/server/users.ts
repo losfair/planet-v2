@@ -18,10 +18,6 @@ export interface UserRow {
 	content_font_family: string | null;
 	note_view_v2: number;
 	wayback_json: string | null;
-	subscription_type: string | null;
-	subscription_exp: number | null;
-	subscription_cancel: string | null;
-	subscription_sub_id: string | null;
 	openapi_invalidate_before: number;
 }
 
@@ -50,26 +46,18 @@ export async function createUser(input: {
 	const now = Date.now();
 	tx(() => {
 		db.query(
-			`INSERT INTO users (username, email, password_hash, display_name, description, join_ts, invited_by, invited_at, subscription_type, subscription_exp)
-			 VALUES (?, ?, ?, '', '', ?, ?, ?, 'signUpFreeTrial', ?)`
+			`INSERT INTO users (username, email, password_hash, display_name, description, join_ts, invited_by, invited_at)
+			 VALUES (?, ?, ?, '', '', ?, ?, ?)`
 		).run(
 			input.username,
 			input.email || null,
 			hash,
 			now,
 			input.invitedBy || null,
-			input.invitedBy ? now : null,
-			now + 14 * 24 * 60 * 60 * 1000
+			input.invitedBy ? now : null
 		);
 		logEvent(input.username, 'sign_up', null, { invitedBy: input.invitedBy });
 	});
-}
-
-export function isSubscribed(user: UserRow): boolean {
-	if (!user.subscription_type) return false;
-	if (user.subscription_type === 'freeTrial') return true;
-	if (user.subscription_exp && user.subscription_exp > Date.now()) return true;
-	return false;
 }
 
 function isFollowing(from: string, to: string): boolean {
@@ -100,14 +88,6 @@ export function buildApiUserInfo(
 			...pub,
 			private: true,
 			openapiLastRevoke: user.openapi_invalidate_before,
-			subscriptionExpiry: user.subscription_exp || 0,
-			subscriptionCancellation: user.subscription_cancel || undefined,
-			subscriptionType:
-				user.subscription_type === 'freeTrial' || user.subscription_type === 'signUpFreeTrial'
-					? 'freeTrial'
-					: user.subscription_type
-						? 'paid'
-						: undefined,
 			noteViewV2: !!user.note_view_v2,
 			waybackMachine: user.wayback_json ? JSON.parse(user.wayback_json) : undefined
 		};
