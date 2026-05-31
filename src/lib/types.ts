@@ -112,6 +112,23 @@ export interface ApiLensInfo {
 	createdAt: number;
 }
 
+export interface LinkGraphNode {
+	id: string;
+	tags: string[];
+	head: string;
+	priv: number;
+}
+
+export interface LinkGraphEdge {
+	from: string;
+	to: string;
+}
+
+export interface LinkGraph {
+	nodes: LinkGraphNode[];
+	edges: LinkGraphEdge[];
+}
+
 export interface UserTagSummary {
 	pub?: string[] | null;
 	priv?: string[] | null;
