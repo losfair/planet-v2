@@ -63,8 +63,6 @@ export async function createUploadTicket(
 	).run(username, filename, contentType, size, now);
 	logEvent(username, 'upload_img', null, { filename, size });
 
-	const finalUrl = `${config.s3.publicBaseUrl}/${filename}`;
-
 	if (s3Configured()) {
 		const cmd = new PutObjectCommand({
 			Bucket: config.s3.bucket,
@@ -75,16 +73,17 @@ export async function createUploadTicket(
 		return {
 			uploadUrl,
 			uploadHeaders: { 'Content-Type': [contentType] },
-			finalUrl,
+			finalUrl: `${config.s3.publicBaseUrl}/${filename}`,
 			contentType
 		};
 	}
 
-	// Local fallback: PUT to our own /img route which writes to disk.
+	// Local fallback: images are served by our own /img route, so the final URL
+	// is a same-origin relative path (S3_PUBLIC_BASE_URL is not used here).
 	return {
 		uploadUrl: `/img/${filename}`,
 		uploadHeaders: { 'Content-Type': [contentType] },
-		finalUrl,
+		finalUrl: `/img/${filename}`,
 		contentType
 	};
 }

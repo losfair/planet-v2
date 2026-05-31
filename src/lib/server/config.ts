@@ -26,7 +26,9 @@ export const config = {
 		bucket: process.env.S3_BUCKET || 'planet-images',
 		accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
 		secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
-		publicBaseUrl: process.env.S3_PUBLIC_BASE_URL || 'http://localhost:3030/img'
+		// Only used when S3 is configured; the local-disk fallback serves images
+		// from the app's own /img/ path.
+		publicBaseUrl: process.env.S3_PUBLIC_BASE_URL || ''
 	}
 };
 
