@@ -1,18 +1,24 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { createUser } from '$server/users';
 import { createNote } from '$server/notes';
 import { createSession } from '$server/auth';
 import { decodeInvitation } from '$server/invitation';
-import { SESSION_COOKIE, SESSION_TTL_MS, usernameRegex } from '$server/config';
+import { SESSION_COOKIE, SESSION_TTL_MS, usernameRegex, config } from '$server/config';
 import { ApiError } from '$server/notes';
 
 export const load: PageServerLoad = ({ locals }) => {
+	// Built-in sign-up is disabled under forward auth — accounts are provisioned
+	// automatically from the proxy identity.
+	if (config.forwardAuth.enabled) {
+		throw redirect(303, locals.user ? `/people/${locals.user.username}/notes` : '/');
+	}
 	if (locals.user) throw redirect(303, `/people/${locals.user.username}/notes`);
 };
 
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
+		if (config.forwardAuth.enabled) throw error(403, 'Sign-up is managed by your identity provider');
 		const data = await request.formData();
 		const username = String(data.get('username') || '')
 			.trim()

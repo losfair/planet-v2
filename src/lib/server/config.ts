@@ -1,8 +1,22 @@
 // Centralized server configuration & domain constants.
 
+const truthy = (v: string | undefined) =>
+	['1', 'true', 'yes', 'on'].includes((v || '').trim().toLowerCase());
+
 export const config = {
 	siteOrigin: process.env.PUBLIC_SITE_ORIGIN || 'http://localhost:3030',
 	sessionSecret: process.env.SESSION_SECRET || 'dev-insecure-session-secret-change-me',
+	// Forward / trusted-header auth. When enabled, identity comes from an
+	// upstream auth proxy (Authelia, oauth2-proxy, Traefik forward-auth, …) via
+	// the configured header, and the built-in sign-in/sign-up are disabled.
+	// SECURITY: only enable when a trusted proxy sets these headers and strips
+	// any client-supplied copies.
+	forwardAuth: {
+		enabled: truthy(process.env.FORWARD_AUTH),
+		userHeader: (process.env.FORWARD_AUTH_USER_HEADER || 'Remote-User').toLowerCase(),
+		emailHeader: (process.env.FORWARD_AUTH_EMAIL_HEADER || 'Remote-Email').toLowerCase(),
+		nameHeader: (process.env.FORWARD_AUTH_NAME_HEADER || 'Remote-Name').toLowerCase()
+	},
 	s3: {
 		region: process.env.S3_REGION || 'auto',
 		endpoint: process.env.S3_ENDPOINT || '',

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import type { ApiBasicUserInfo } from '$lib/types';
 	import Avatar from './Avatar.svelte';
 	import Menu from './Menu.svelte';
@@ -11,6 +12,9 @@
 	let { wide = false }: { wide?: boolean } = $props();
 	const currentUser = getContext<{ value: ApiBasicUserInfo | null }>('currentUser');
 	const user = $derived(currentUser?.value);
+	// Under forward auth the identity provider owns the session: no local
+	// sign-in/sign-out.
+	const forwardAuth = $derived(!!page.data.forwardAuth);
 
 	let settingsOpen = $state(false);
 
@@ -36,15 +40,17 @@
 		<MenuItem onclick={() => goto(`/people/${user.username}/notes`)}>Notes</MenuItem>
 		<MenuItem onclick={() => (settingsOpen = true)}>Settings</MenuItem>
 		<MenuItem onclick={() => window.open('https://docs.planet.ink/')}>Help</MenuItem>
-		<MenuItem divider />
-		<MenuItem color="var(--chakra-colors-red-500)" onclick={logout}>Sign out</MenuItem>
+		{#if !forwardAuth}
+			<MenuItem divider />
+			<MenuItem color="var(--chakra-colors-red-500)" onclick={logout}>Sign out</MenuItem>
+		{/if}
 	</Menu>
 
 	<Modal open={settingsOpen} onClose={() => (settingsOpen = false)} maxWidth="40rem">
 		{#snippet header()}Settings{/snippet}
 		<Settings username={user.username} onClose={() => (settingsOpen = false)} />
 	</Modal>
-{:else}
+{:else if !forwardAuth}
 	<a class="signin" href="/login">Sign in</a>
 {/if}
 

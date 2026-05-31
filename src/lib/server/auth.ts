@@ -7,7 +7,7 @@ export interface SessionUser {
 	features: string[];
 }
 
-const FEATURES = ['social', 'lens', 'image'];
+export const FEATURES = ['social', 'lens', 'image'];
 
 export async function hashPassword(password: string): Promise<string> {
 	return await Bun.password.hash(password, { algorithm: 'argon2id' });

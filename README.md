@@ -77,6 +77,20 @@ fallback persist in the `/app/data` volume.
 > public URL or those requests will 403. It defaults to `http://localhost:3000`
 > in the image for local runs.
 
+## Authentication
+
+By default Planet uses built-in local accounts (username/email + password,
+argon2id, DB-backed sessions).
+
+Alternatively, set `FORWARD_AUTH=1` to delegate authentication to an upstream
+proxy (Authelia, oauth2-proxy, Traefik forward-auth, …). The user identity is
+then read from a trusted request header (`Remote-User` by default; also
+`Remote-Email` / `Remote-Name` for auto-provisioning), session cookies are
+ignored, accounts are created automatically on first request, and the built-in
+sign-in / sign-up pages and buttons are disabled. **Only enable this behind a
+proxy that sets these headers and strips any client-supplied copies**, or the
+header can be spoofed.
+
 ## Configuration
 
 See `.env.example`. Without S3 credentials the app stores uploaded images on

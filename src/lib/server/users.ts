@@ -60,6 +60,28 @@ export async function createUser(input: {
 	});
 }
 
+// Locked password hash for accounts that authenticate via an upstream proxy
+// (forward auth). It is not a valid hash, so verifyPassword() can never match.
+const LOCKED_PASSWORD = '!forward-auth';
+
+/**
+ * Create an account for a forward-auth identity (no local password). Idempotent
+ * caller should check getUser() first; this assumes the username is free.
+ */
+export function provisionForwardAuthUser(
+	username: string,
+	email: string | null,
+	displayName: string
+): void {
+	const safeEmail = email && !getUserByEmail(email) ? email : null;
+	const now = Date.now();
+	db.query(
+		`INSERT INTO users (username, email, password_hash, display_name, description, join_ts)
+		 VALUES (?, ?, ?, ?, '', ?)`
+	).run(username, safeEmail, LOCKED_PASSWORD, displayName.slice(0, 30), now);
+	logEvent(username, 'sign_up', null, { via: 'forward-auth' });
+}
+
 function isFollowing(from: string, to: string): boolean {
 	return !!db
 		.query('SELECT 1 FROM follows WHERE from_username = ? AND to_username = ?')
