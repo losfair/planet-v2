@@ -15,7 +15,10 @@ export const config = {
 		enabled: truthy(process.env.FORWARD_AUTH),
 		userHeader: (process.env.FORWARD_AUTH_USER_HEADER || 'Remote-User').toLowerCase(),
 		emailHeader: (process.env.FORWARD_AUTH_EMAIL_HEADER || 'Remote-Email').toLowerCase(),
-		nameHeader: (process.env.FORWARD_AUTH_NAME_HEADER || 'Remote-Name').toLowerCase()
+		nameHeader: (process.env.FORWARD_AUTH_NAME_HEADER || 'Remote-Name').toLowerCase(),
+		// Where to send unauthenticated visitors — the proxy's auth/redirect
+		// endpoint (served by the reverse proxy, not this app).
+		loginPath: process.env.FORWARD_AUTH_LOGIN_PATH || '/.login'
 	},
 	s3: {
 		region: process.env.S3_REGION || 'auto',

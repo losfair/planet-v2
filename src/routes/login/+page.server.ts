@@ -8,7 +8,10 @@ import { logEvent } from '$server/log';
 export const load: PageServerLoad = ({ locals }) => {
 	// Built-in sign-in is disabled under forward auth — identity is external.
 	if (config.forwardAuth.enabled) {
-		throw redirect(303, locals.user ? `/people/${locals.user.username}/notes` : '/');
+		throw redirect(
+			303,
+			locals.user ? `/people/${locals.user.username}/notes` : config.forwardAuth.loginPath
+		);
 	}
 	if (locals.user) throw redirect(303, `/people/${locals.user.username}/notes`);
 };

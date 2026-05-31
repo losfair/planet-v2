@@ -6,7 +6,9 @@ import { SESSION_COOKIE, config } from '$server/config';
 export const handle: Handle = async ({ event, resolve }) => {
 	if (forwardAuthEnabled()) {
 		// Identity comes solely from the trusted proxy headers; session cookies
-		// are ignored entirely.
+		// are ignored entirely. Public pages stay accessible anonymously — the
+		// redirect to the proxy's auth endpoint happens only where auth is
+		// actually required (protected loads + the sign-in affordance).
 		event.locals.user = resolveForwardAuth(event.request.headers);
 	} else {
 		const token = event.cookies.get(SESSION_COOKIE);

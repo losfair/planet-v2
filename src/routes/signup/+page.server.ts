@@ -11,7 +11,10 @@ export const load: PageServerLoad = ({ locals }) => {
 	// Built-in sign-up is disabled under forward auth — accounts are provisioned
 	// automatically from the proxy identity.
 	if (config.forwardAuth.enabled) {
-		throw redirect(303, locals.user ? `/people/${locals.user.username}/notes` : '/');
+		throw redirect(
+			303,
+			locals.user ? `/people/${locals.user.username}/notes` : config.forwardAuth.loginPath
+		);
 	}
 	if (locals.user) throw redirect(303, `/people/${locals.user.username}/notes`);
 };

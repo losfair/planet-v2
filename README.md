@@ -87,9 +87,11 @@ proxy (Authelia, oauth2-proxy, Traefik forward-auth, …). The user identity is
 then read from a trusted request header (`Remote-User` by default; also
 `Remote-Email` / `Remote-Name` for auto-provisioning), session cookies are
 ignored, accounts are created automatically on first request, and the built-in
-sign-in / sign-up pages and buttons are disabled. **Only enable this behind a
-proxy that sets these headers and strips any client-supplied copies**, or the
-header can be spoofed.
+sign-in / sign-up forms are disabled. Public pages stay viewable anonymously;
+the "Sign in" link and any auth-required page instead point to the proxy's auth
+endpoint (`FORWARD_AUTH_LOGIN_PATH`, default `/.login`). **Only enable this
+behind a proxy that sets these headers and strips any client-supplied copies**,
+or the header can be spoofed.
 
 ## Configuration
 

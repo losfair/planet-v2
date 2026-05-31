@@ -16,8 +16,8 @@
 		<div>
 			{#if user && user.username}
 				<a href={`/people/${user.username}/notes`}>{user.username}</a>
-			{:else if !data.forwardAuth}
-				<a href="/login">Sign in</a>
+			{:else}
+				<a href={data.loginUrl}>Sign in</a>
 			{/if}
 		</div>
 	</header>

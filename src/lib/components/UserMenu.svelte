@@ -12,9 +12,10 @@
 	let { wide = false }: { wide?: boolean } = $props();
 	const currentUser = getContext<{ value: ApiBasicUserInfo | null }>('currentUser');
 	const user = $derived(currentUser?.value);
-	// Under forward auth the identity provider owns the session: no local
-	// sign-in/sign-out.
+	// Under forward auth the identity provider owns the session: the sign-in
+	// link points at the proxy, and there's no local sign-out.
 	const forwardAuth = $derived(!!page.data.forwardAuth);
+	const loginUrl = $derived((page.data.loginUrl as string) || '/login');
 
 	let settingsOpen = $state(false);
 
@@ -50,8 +51,8 @@
 		{#snippet header()}Settings{/snippet}
 		<Settings username={user.username} onClose={() => (settingsOpen = false)} />
 	</Modal>
-{:else if !forwardAuth}
-	<a class="signin" href="/login">Sign in</a>
+{:else}
+	<a class="signin" href={loginUrl}>Sign in</a>
 {/if}
 
 <style>
