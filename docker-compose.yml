@@ -1,0 +1,27 @@
+services:
+  planet:
+    build: .
+    image: planet-v2
+    ports:
+      - '3000:3000'
+    environment:
+      # CHANGE THIS in production — it signs sessions, invitations and API tokens.
+      SESSION_SECRET: 'change-me-to-a-long-random-string'
+      # MUST match the public URL or login/signup form posts get a 403 (CSRF).
+      ORIGIN: 'http://localhost:3000'
+      # Absolute origin used for RSS / share links.
+      PUBLIC_SITE_ORIGIN: 'http://localhost:3000'
+      # --- S3 image store (optional) ---
+      # Leave blank to use the local-disk fallback under the data volume.
+      # S3_ENDPOINT: 'https://<account>.r2.cloudflarestorage.com'
+      # S3_REGION: 'auto'
+      # S3_BUCKET: 'planet-images'
+      # S3_ACCESS_KEY_ID: ''
+      # S3_SECRET_ACCESS_KEY: ''
+      # S3_PUBLIC_BASE_URL: 'https://img.example.com'
+    volumes:
+      - planet-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  planet-data:

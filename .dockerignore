@@ -1,0 +1,15 @@
+.git
+node_modules
+build
+.svelte-kit
+/data
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
+/tmp
+*.log
+_*.mjs

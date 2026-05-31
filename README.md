@@ -56,6 +56,27 @@ DATABASE_PATH=./data/planet.sqlite PORT=3000 bun ./build/index.js
 > runtime. This is required because `bun:sqlite` is a Bun built-in; running Vite
 > under Node (its default shebang) would fail to resolve it.
 
+### Docker
+
+```bash
+docker build -t planet-v2 .
+docker run -p 3000:3000 \
+  -e SESSION_SECRET="$(openssl rand -hex 32)" \
+  -e ORIGIN="https://your-domain.example" \
+  -e PUBLIC_SITE_ORIGIN="https://your-domain.example" \
+  -v planet-data:/app/data \
+  planet-v2
+```
+
+or `docker compose up --build`. The image runs the SvelteKit server with Bun
+(needed for `bun:sqlite`) as a non-root user; SQLite and the local image
+fallback persist in the `/app/data` volume.
+
+> **`ORIGIN` is required.** `adapter-node` validates it against the `Origin`
+> header on form posts (login/signup) for CSRF protection — set it to your
+> public URL or those requests will 403. It defaults to `http://localhost:3000`
+> in the image for local runs.
+
 ## Configuration
 
 See `.env.example`. Without S3 credentials the app stores uploaded images on
