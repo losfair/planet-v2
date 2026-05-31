@@ -159,7 +159,7 @@
 		background: var(--card-bg);
 		color: var(--text);
 		padding: 12px;
-		font-family: inherit;
+		font-family: var(--note-font, inherit);
 		font-size: 14px;
 		line-height: 1.8;
 		overflow-y: auto;

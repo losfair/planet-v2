@@ -133,6 +133,9 @@ a {
 }
 
 /* ---------------- note content (ported from global.css) ----------- */
+.raw-snippet {
+	font-family: var(--note-font, inherit);
+}
 .raw-snippet > :not(div) {
 	line-height: 1.8;
 	font-size: 14px;

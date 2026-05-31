@@ -25,7 +25,7 @@
 </script>
 
 {#if user && user.username}
-	<Menu align={wide ? 'start' : 'end'}>
+	<Menu align={wide ? 'start' : 'end'} direction={wide ? 'up' : 'down'}>
 		{#snippet trigger()}
 			<span class="trigger">
 				<Avatar name={user.username} size="sm" />

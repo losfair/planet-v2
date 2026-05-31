@@ -4,8 +4,14 @@
 	let {
 		trigger,
 		children,
-		align = 'end'
-	}: { trigger: Snippet; children: Snippet; align?: 'start' | 'end' } = $props();
+		align = 'end',
+		direction = 'down'
+	}: {
+		trigger: Snippet;
+		children: Snippet;
+		align?: 'start' | 'end';
+		direction?: 'down' | 'up';
+	} = $props();
 
 	let open = $state(false);
 	let root: HTMLElement;
@@ -27,7 +33,7 @@
 		{@render trigger()}
 	</button>
 	{#if open}
-		<div class="menu-list {align}" role="menu" onclick={() => (open = false)}>
+		<div class="menu-list {align} {direction}" role="menu" onclick={() => (open = false)}>
 			{@render children()}
 		</div>
 	{/if}
@@ -50,7 +56,6 @@
 	}
 	.menu-list {
 		position: absolute;
-		top: calc(100% + 4px);
 		min-width: 180px;
 		background: var(--card-bg);
 		border: 1px solid var(--border);
@@ -66,5 +71,11 @@
 	}
 	.menu-list.start {
 		left: 0;
+	}
+	.menu-list.down {
+		top: calc(100% + 4px);
+	}
+	.menu-list.up {
+		bottom: calc(100% + 4px);
 	}
 </style>

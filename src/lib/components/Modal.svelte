@@ -20,6 +20,17 @@
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Escape') onClose();
 	}
+
+	// Portal the overlay to <body> so it escapes any ancestor stacking context
+	// (e.g. the position:fixed sidebar) and always renders on top.
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			}
+		};
+	}
 </script>
 
 <svelte:window onkeydown={open ? onKey : undefined} />
@@ -27,6 +38,7 @@
 {#if open}
 	<div
 		class="overlay"
+		use:portal
 		role="presentation"
 		onclick={(e) => {
 			if (e.target === e.currentTarget) onClose();

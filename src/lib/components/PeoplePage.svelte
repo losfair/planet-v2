@@ -42,6 +42,15 @@
 	const isOwner = $derived(currentUser?.value?.username === username);
 	const displayName = $derived(publicInfo.displayName || username);
 
+	// Apply the author's preferred content font to their notes (matches original).
+	const noteFont = $derived(
+		publicInfo.contentFontFamily === 'serif'
+			? 'Georgia, Cambria, "Times New Roman", serif'
+			: publicInfo.contentFontFamily === 'monospace'
+				? 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace'
+				: 'inherit'
+	);
+
 	// --- note list state ---
 	let notes = $state<RenderableSnippet[]>(data.snippets);
 	let cursor = $state<string | null>(data.cursor);
@@ -183,7 +192,7 @@
 
 <svelte:head><title>{displayName}'s Planet</title></svelte:head>
 
-<div class="people-root">
+<div class="people-root" style="--note-font: {noteFont}">
 	<!-- Desktop sidebar -->
 	<aside class="sidebar-fixed">
 		<div class="side-head">
