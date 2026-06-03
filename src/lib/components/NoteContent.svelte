@@ -76,9 +76,9 @@
 
 		// Hashtags
 		rewrite(sel(), hashTagRegex, (a, m) => {
-			const tag = m[2].substring(1);
+			const tag = m[1];
 			a.href = `/people/${snippet.username}/tag/${encodeURIComponent(tag)}`;
-			a.textContent = m[0];
+			a.textContent = m[0]; // "#tag" (lookbehind keeps the leading space out)
 			a.className = 'hashtag';
 		});
 

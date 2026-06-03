@@ -13,5 +13,5 @@ export function isoDate(d: Date): string {
 
 export const urlRegex =
 	/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
-export const hashTagRegex = /(\s|^)(#[^#\s]{1,100})/g;
+export { hashTagRegex } from '$lib/tags';
 export const atMentionRegex = /(\s|^)@([a-z0-9.-]{1,30}[a-z0-9])/g;

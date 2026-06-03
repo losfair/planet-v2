@@ -1,9 +1,10 @@
 import type { NoteLinkWithPosition } from '$lib/types';
 
+export { extractTags } from '../tags';
+
 // Patterns mirror the original (util/format.ts + service-logic/data/links.ts).
 const atLinkRegex = /@([a-z0-9.-]{1,50})\/([0-9a-zA-Z_-]{1,50})/g;
 const urlLinkRegex = /https?:\/\/[^\s)]+\/people\/([a-z0-9.-]{1,50})\/([0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9a-zA-Z_-]{1,50})/g;
-const hashTagRegex = /(?:\s|^)(#[^#\s]{1,100})/g;
 const atMentionRegex = /(?:\s|^)@([a-z0-9.-]{1,30}[a-z0-9])(?![a-z0-9.\-/])/g;
 
 /** Extract forward links (note -> note references) from markdown source. */
@@ -38,17 +39,6 @@ export function extractForwardLinks(md: string, max: number): NoteLinkWithPositi
 }
 
 /** Extract hashtags (full hierarchical strings, e.g. "a/b/c") from markdown. */
-export function extractTags(md: string): string[] {
-	const out = new Set<string>();
-	let m: RegExpExecArray | null;
-	hashTagRegex.lastIndex = 0;
-	while ((m = hashTagRegex.exec(md))) {
-		const tag = m[1].slice(1); // drop leading '#'
-		if (tag) out.add(tag);
-	}
-	return [...out];
-}
-
 /** Extract @username mentions (not note links) for notifications. */
 export function extractMentions(md: string): string[] {
 	const out = new Set<string>();
