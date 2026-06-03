@@ -1,6 +1,7 @@
 import type { Handle, HandleFetch } from '@sveltejs/kit';
-import { resolveSession } from '$server/auth';
+import { resolveSession, FEATURES } from '$server/auth';
 import { forwardAuthEnabled, resolveForwardAuth } from '$server/forwardauth';
+import { resolveToken } from '$server/openapi';
 import { SESSION_COOKIE, config } from '$server/config';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -14,6 +15,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const token = event.cookies.get(SESSION_COOKIE);
 		event.locals.user = resolveSession(token);
 	}
+
+	// Programmatic access: a Bearer API token authenticates the request when no
+	// interactive session/proxy identity is present. Works in either auth mode.
+	if (!event.locals.user) {
+		const authz = event.request.headers.get('authorization');
+		if (authz?.startsWith('Bearer ')) {
+			const username = resolveToken(authz.slice(7).trim());
+			if (username) event.locals.user = { username, features: FEATURES };
+		}
+	}
+
 	return resolve(event);
 };
 

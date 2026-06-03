@@ -27,13 +27,25 @@ export const migrations: Migration[] = [
 		version: 1,
 		name: 'baseline',
 		up: (db) => db.exec(SCHEMA)
+	},
+	{
+		version: 2,
+		name: 'named API tokens',
+		// Opaque tokens: only a SHA-256 hash of the secret is stored.
+		up: (db) =>
+			db.exec(`
+				CREATE TABLE IF NOT EXISTS api_tokens (
+					id         TEXT PRIMARY KEY,
+					username   TEXT NOT NULL,
+					name       TEXT NOT NULL DEFAULT '',
+					token_hash TEXT NOT NULL DEFAULT '',
+					created_at INTEGER NOT NULL,
+					FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+				);
+				CREATE INDEX IF NOT EXISTS idx_api_tokens_user ON api_tokens (username, created_at DESC);
+				CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens (token_hash);
+			`)
 	}
-	// Example of a future migration:
-	// {
-	//   version: 2,
-	//   name: 'add notes.pinned',
-	//   up: (db) => db.exec('ALTER TABLE notes ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;')
-	// }
 ];
 
 /** Apply all pending migrations. Returns the resulting schema version. */

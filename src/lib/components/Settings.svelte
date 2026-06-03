@@ -60,19 +60,50 @@
 	}
 
 	// --- data tab ---
-	let apiToken = $state('');
+	interface ApiTokenInfo {
+		id: string;
+		name: string;
+		createdAt: number;
+	}
+	let apiToken = $state(''); // freshly-created token, shown once
+	let tokenName = $state('');
 	let tokenBusy = $state(false);
+	let tokens = $state<ApiTokenInfo[] | null>(null);
 	let emails = $state<string[] | null>(null);
+
+	async function loadTokens() {
+		try {
+			tokens = (await loadJson<{ tokens: ApiTokenInfo[] }>('/me/api/v1/openapi/tokens')).tokens;
+		} catch {
+			tokens = [];
+		}
+	}
+	$effect(() => {
+		if (tab === 'data' && tokens === null) loadTokens();
+	});
 
 	async function createToken() {
 		tokenBusy = true;
 		try {
-			const r = await loadJson<{ token: string }>('/me/api/v1/openapi/create_token', {});
+			const r = await loadJson<{ token: string }>('/me/api/v1/openapi/create_token', {
+				name: tokenName
+			});
 			apiToken = r.token;
+			tokenName = '';
+			await loadTokens();
 		} catch (e) {
 			toast.show({ title: 'Error', description: String(e), status: 'error' });
 		} finally {
 			tokenBusy = false;
+		}
+	}
+	async function revokeOne(id: string) {
+		if (!confirm('Revoke this token?')) return;
+		try {
+			await loadJson('/me/api/v1/openapi/revoke_token', { id });
+			await loadTokens();
+		} catch (e) {
+			toast.show({ title: 'Error', description: String(e), status: 'error' });
 		}
 	}
 	async function revokeTokens() {
@@ -80,6 +111,7 @@
 		try {
 			await loadJson('/me/api/v1/openapi/revoke_all_tokens', {});
 			apiToken = '';
+			await loadTokens();
 			toast.show({ title: 'All API tokens revoked', status: 'success' });
 		} catch (e) {
 			toast.show({ title: 'Error', description: String(e), status: 'error' });
@@ -252,14 +284,45 @@
 
 		<section>
 			<h3>API</h3>
-			<p class="muted">Programmatic access to your planet.</p>
-			<div class="api-actions">
+			<p class="muted">
+				Programmatic access to your planet. See the
+				<a class="link" href="/docs/api" target="_blank" rel="noopener">API documentation</a>.
+			</p>
+			<div class="api-create">
+				<input
+					class="token-name"
+					placeholder="Token name (e.g. CLI, laptop)"
+					maxlength="60"
+					bind:value={tokenName}
+				/>
 				<Button colorScheme="gray" loading={tokenBusy} onclick={createToken}>Create token</Button>
-				<Button colorScheme="red" variant="outline" onclick={revokeTokens}>Revoke all</Button>
 			</div>
 			{#if apiToken}
 				<textarea class="token" readonly rows="2">{apiToken}</textarea>
 				<p class="muted sm">Copy this token now — it won't be shown again.</p>
+			{/if}
+
+			{#if tokens && tokens.length}
+				<table class="token-list">
+					<tbody>
+						{#each tokens as t (t.id)}
+							<tr>
+								<td>
+									<div class="tname">{t.name}</div>
+									<div class="muted sm">Created {new Date(t.createdAt).toLocaleString()}</div>
+								</td>
+								<td class="ta-right">
+									<button class="link inline revoke" onclick={() => revokeOne(t.id)}>Revoke</button>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+				<div>
+					<button class="link inline revoke" onclick={revokeTokens}>Revoke all</button>
+				</div>
+			{:else if tokens}
+				<p class="muted sm">No API tokens yet.</p>
 			{/if}
 		</section>
 
@@ -365,14 +428,37 @@
 		display: flex;
 		justify-content: flex-end;
 	}
-	.api-actions {
+	.api-create {
 		display: flex;
 		gap: 8px;
+		align-items: center;
+	}
+	.token-name {
+		flex: 1;
 	}
 	.token {
 		width: 100%;
 		font-family: monospace;
 		font-size: 12px;
+	}
+	.token-list {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	.token-list td {
+		padding: 8px 0;
+		border-bottom: 1px solid var(--border);
+		vertical-align: middle;
+	}
+	.tname {
+		font-weight: 600;
+	}
+	.ta-right {
+		text-align: right;
+		white-space: nowrap;
+	}
+	.revoke {
+		color: var(--chakra-colors-red-500);
 	}
 	.link {
 		color: var(--accent);
