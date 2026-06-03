@@ -47,6 +47,10 @@
 	function openNote() {
 		notePopup.open(`${snippet.username}/${snippet.id}`);
 	}
+	function openGraph() {
+		const q = encodeURIComponent(JSON.stringify({ type: 'hasId', id: snippet.id }));
+		window.open(`/people/${snippet.username}/graph?q=${q}`);
+	}
 
 	async function setPin(pin: boolean) {
 		if (!confirm(pin ? 'Pin this note?' : 'Unpin this note?')) return;
@@ -131,6 +135,7 @@
 						<span class="dots" aria-label="More">⋯</span>
 					{/snippet}
 					<MenuItem onclick={openNote}>Open</MenuItem>
+					<MenuItem onclick={openGraph}>Graph</MenuItem>
 					<MenuItem onclick={copyLink}>Copy URL</MenuItem>
 					{#if isOwner}
 						<MenuItem divider />

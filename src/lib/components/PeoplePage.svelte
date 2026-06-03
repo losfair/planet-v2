@@ -230,6 +230,14 @@
 					/></svg
 				>
 			</a>
+			<a class="ico" href={`/people/${username}/graph`} title="Graph view" aria-label="Graph view">
+				<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+					<circle cx="5" cy="6" r="2.2" />
+					<circle cx="18" cy="7" r="2.2" />
+					<circle cx="12" cy="18" r="2.2" />
+					<path d="M7 6.6 10.5 16M16.2 8.4 13.2 16.4M7.1 6.2 15.9 6.9" />
+				</svg>
+			</a>
 		</div>
 	</aside>
 
