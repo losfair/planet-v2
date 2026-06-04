@@ -9,6 +9,8 @@
 	import DashWrite from './DashWrite.svelte';
 	import Menu from './Menu.svelte';
 	import MenuItem from './MenuItem.svelte';
+	import Modal from './Modal.svelte';
+	import ScreenshotBox from './ScreenshotBox.svelte';
 
 	let {
 		snippet,
@@ -34,6 +36,7 @@
 	const isOwner = $derived(currentUser?.value?.username === snippet.username);
 
 	let editing = $state(false);
+	let screenshotOpen = $state(false);
 
 	const shareLink = $derived(
 		(typeof location !== 'undefined' ? location.origin : '') +
@@ -137,6 +140,7 @@
 					<MenuItem onclick={openNote}>Open</MenuItem>
 					<MenuItem onclick={openGraph}>Graph</MenuItem>
 					<MenuItem onclick={copyLink}>Copy URL</MenuItem>
+					<MenuItem onclick={() => (screenshotOpen = true)}>Share as image</MenuItem>
 					{#if isOwner}
 						<MenuItem divider />
 						{#if isTopNote}
@@ -154,6 +158,13 @@
 		</div>
 	</div>
 {/if}
+
+<Modal open={screenshotOpen} onClose={() => (screenshotOpen = false)}>
+	{#snippet header()}Screenshot{/snippet}
+	{#if screenshotOpen}
+		<ScreenshotBox {snippet} />
+	{/if}
+</Modal>
 
 <style>
 	.notebox {

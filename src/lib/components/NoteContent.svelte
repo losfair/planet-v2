@@ -4,7 +4,9 @@
 	import type { RenderableSnippet } from '$lib/types';
 	import { notePopup } from '$lib/client/notePopup.svelte';
 
-	let { snippet }: { snippet: RenderableSnippet } = $props();
+	let { snippet, light = false }: { snippet: RenderableSnippet; light?: boolean } = $props();
+
+	const dark = $derived(!light && colorMode.current === 'dark');
 
 	let container: HTMLDivElement;
 
@@ -109,7 +111,7 @@
 
 <div
 	bind:this={container}
-	class="raw-snippet {colorMode.current === 'dark' ? 'raw-snippet-dark' : 'raw-snippet-light'}"
+	class="raw-snippet {dark ? 'raw-snippet-dark' : 'raw-snippet-light'}"
 >
 	{@html snippet.content}
 </div>

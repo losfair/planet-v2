@@ -26,8 +26,10 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.726.0",
     "@aws-sdk/s3-request-presigner": "^3.726.0",
+    "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "marked": "^15.0.0",
+    "qr-code-styling": "^1.9.2",
     "sanitize-html": "^2.14.0",
     "vis-data": "^8.0.4",
     "vis-network": "^10.1.0"
