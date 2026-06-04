@@ -136,6 +136,12 @@ a {
 .raw-snippet {
 	font-family: var(--note-font, inherit);
 }
+/* Reset user-agent default margins (the original relied on Chakra's global
+   reset). `:where()` keeps specificity 0 so the spacing/padding rules below
+   still win — e.g. blockquote's default 40px side margins are removed. */
+.raw-snippet :where(p, ul, ol, blockquote, pre, h1, h2, h3, h4, h5, h6, figure, table) {
+	margin: 0;
+}
 .raw-snippet > :not(div) {
 	line-height: 1.8;
 	font-size: 14px;
