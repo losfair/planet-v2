@@ -33,8 +33,11 @@
 
 			const QRCodeStyling = qrMod.default;
 			const qr = new QRCodeStyling({
-				width: 56,
-				height: 56,
+				// Rendered large for crispness; CSS scales it to fill the box.
+				// margin: 0 removes the quiet-zone padding so it fills edge-to-edge.
+				width: 240,
+				height: 240,
+				margin: 0,
 				data: `${location.origin}/people/${snippet.username}/${snippet.id}`,
 				dotsOptions: { color: '#2c5282', type: 'rounded' },
 				backgroundOptions: { color: 'rgba(0,0,0,0)' }
@@ -151,11 +154,19 @@
 		width: 60px;
 		height: 60px;
 		background: #ebf8ff;
-		padding: 2px;
+		padding: 3px;
 		border-radius: var(--radius-md);
 		margin-left: auto;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		overflow: hidden;
+	}
+	/* The QR is appended dynamically, so it needs a global rule to fill the box. */
+	.qr :global(canvas),
+	.qr :global(svg) {
+		width: 100% !important;
+		height: 100% !important;
+		display: block;
 	}
 </style>
