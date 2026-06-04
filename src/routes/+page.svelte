@@ -97,11 +97,11 @@
 		<p class="discord">Join our community on <a href="https://discord.gg/WRuX5SXQ2u">Discord</a>!</p>
 		<hr />
 		<footer>
-			<a href="https://docs.planet.ink">Documentation</a>
+			<a href="/docs/api">Documentation</a>
 			<span class="sep">|</span>
-			<span>hello@planet.ink</span>
+			<span>z@metasymbolic.studio</span>
 			<span class="sep">|</span>
-			<span>&copy; {year} BlueLogic LLC</span>
+			<span>&copy; {year} <a href="https://metasymbolic.studio/">MetaSymbolic Studio</a></span>
 		</footer>
 	</div>
 </div>

@@ -329,7 +329,7 @@
 		<section>
 			<h3>Delete account</h3>
 			<p class="muted">
-				Please contact <strong>hello@planet.ink</strong> using
+				Please contact <strong>z@metasymbolic.studio</strong> using
 				{#if emails}<strong>{emails.join(' / ')}</strong>{:else}<button class="link inline" onclick={loadEmails}>(click to view)</button>{/if}
 				to delete your account.
 			</p>

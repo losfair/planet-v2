@@ -40,7 +40,7 @@
 		<MenuItem><span class="muted">@{user.username}</span></MenuItem>
 		<MenuItem onclick={() => goto(`/people/${user.username}/notes`)}>Notes</MenuItem>
 		<MenuItem onclick={() => (settingsOpen = true)}>Settings</MenuItem>
-		<MenuItem onclick={() => window.open('https://docs.planet.ink/')}>Help</MenuItem>
+		<MenuItem onclick={() => window.open('/docs/api')}>Help</MenuItem>
 		{#if !forwardAuth}
 			<MenuItem divider />
 			<MenuItem color="var(--chakra-colors-red-500)" onclick={logout}>Sign out</MenuItem>

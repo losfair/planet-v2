@@ -47,7 +47,7 @@
 	<SkeletonText />
 {:else if tree.length === 0}
 	<p class="empty">
-		No <a href="https://docs.planet.ink/taking-notes/tags/" class="link">tags</a> yet
+		No tags yet
 	</p>
 {:else}
 	<div class="taglist">

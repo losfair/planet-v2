@@ -31,7 +31,7 @@
 	<div class="lenses">
 		{#if lenses.length === 0}
 			<p class="empty">
-				No <a class="link" href="https://docs.planet.ink/organizing-notes/lens">lenses</a> yet
+				No lenses yet
 			</p>
 		{/if}
 		{#each lenses as lens (lens.id)}
