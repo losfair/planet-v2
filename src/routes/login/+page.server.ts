@@ -5,7 +5,13 @@ import { verifyPassword, createSession } from '$server/auth';
 import { SESSION_COOKIE, SESSION_TTL_MS, config } from '$server/config';
 import { logEvent } from '$server/log';
 
-export const load: PageServerLoad = ({ locals }) => {
+/** Only same-origin relative paths may be used as a post-login redirect target. */
+function safeNext(next: string | null): string | null {
+	return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+}
+
+export const load: PageServerLoad = ({ locals, url }) => {
+	const next = safeNext(url.searchParams.get('next'));
 	// Built-in sign-in is disabled under forward auth — identity is external.
 	if (config.forwardAuth.enabled) {
 		throw redirect(
@@ -13,7 +19,8 @@ export const load: PageServerLoad = ({ locals }) => {
 			locals.user ? `/people/${locals.user.username}/notes` : config.forwardAuth.loginPath
 		);
 	}
-	if (locals.user) throw redirect(303, `/people/${locals.user.username}/notes`);
+	if (locals.user) throw redirect(303, next ?? `/people/${locals.user.username}/notes`);
+	return { next: next ?? '' };
 };
 
 export const actions: Actions = {
@@ -22,6 +29,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const identifier = String(data.get('identifier') || '').trim();
 		const password = String(data.get('password') || '');
+		const next = safeNext(String(data.get('next') || '') || null);
 		if (!identifier || !password) return fail(400, { error: 'Missing credentials' });
 
 		const user = identifier.includes('@') ? getUserByEmail(identifier) : getUser(identifier);
@@ -38,6 +46,6 @@ export const actions: Actions = {
 			maxAge: Math.floor(SESSION_TTL_MS / 1000)
 		});
 		logEvent(user.username, 'sign_in', null, {});
-		throw redirect(303, `/people/${user.username}/notes`);
+		throw redirect(303, next ?? `/people/${user.username}/notes`);
 	}
 };

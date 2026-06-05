@@ -128,15 +128,16 @@ curl "${origin}/api/v1/notes?username=$PLANET_USER" \\
 
 	<h2>MCP server</h2>
 	<p>
-		Planet also speaks the <a class="link" href="https://modelcontextprotocol.io" target="_blank" rel="noreferrer">Model Context Protocol</a>,
+		Planet speaks the <a class="link" href="https://modelcontextprotocol.io" target="_blank" rel="noreferrer">Model Context Protocol</a>,
 		so AI assistants can read and write notes directly. The endpoint is a stateless
-		<em>Streamable HTTP</em> transport at <code>/mcp</code>, authenticated with the same API token
-		(<code>Authorization: Bearer &lt;token&gt;</code>). Read tools work anonymously; create / update /
-		delete and your follow feed require a token.
+		<em>Streamable HTTP</em> transport at <code>/mcp</code>, and <strong>requires authentication</strong> —
+		either an API token or OAuth (below). All tools act as the authenticated user.
 	</p>
 	<pre><code>{`${origin}/mcp`}</code></pre>
 	<p class="note">Tools: {mcpTools.join(', ')}.</p>
-	<p>Point an MCP client (e.g. Claude) at the URL above with your token as a bearer header. With <code>mcp-remote</code>:</p>
+
+	<h3>Connect with an API token</h3>
+	<p>Simplest for local clients (Claude Code, Claude Desktop). With <code>mcp-remote</code>:</p>
 	<pre><code>{`{
   "mcpServers": {
     "planet": {
@@ -148,6 +149,28 @@ curl "${origin}/api/v1/notes?username=$PLANET_USER" \\
     }
   }
 }`}</code></pre>
+	<p>Or, with Claude Code's CLI:</p>
+	<pre><code>{`claude mcp add --transport http planet ${origin}/mcp \\
+  --header "Authorization: Bearer pat_..."`}</code></pre>
+
+	<h3>Connect with OAuth</h3>
+	<p>
+		For clients that drive their own sign-in (Claude web custom connectors, ChatGPT developer
+		mode), just give them the URL above — no token needed. An unauthenticated request gets a
+		<code>401</code> with a <code>WWW-Authenticate</code> header pointing at this server's
+		<a class="link" href="/.well-known/oauth-protected-resource/mcp">protected-resource metadata</a>,
+		and the client runs the standard OAuth 2.1 flow:
+	</p>
+	<ul class="bullets">
+		<li>Discovery — <code>/.well-known/oauth-protected-resource</code> and <code>/.well-known/oauth-authorization-server</code>.</li>
+		<li>Dynamic client registration (RFC 7591) — <code>POST /oauth/register</code>.</li>
+		<li>Authorization with PKCE (S256) — <code>/oauth/authorize</code>; you sign in to Planet and approve.</li>
+		<li>Token + refresh — <code>POST /oauth/token</code>. Access tokens last 1 hour; refresh tokens rotate.</li>
+	</ul>
+	<p class="note">
+		OAuth requires the endpoints to be reachable over HTTPS (or loopback) — deploy Planet behind
+		TLS for use with cloud clients.
+	</p>
 
 	<h2>Notes</h2>
 	<ul class="bullets">

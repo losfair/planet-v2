@@ -158,7 +158,7 @@ const TOOLS: Tool[] = [
 		handler: (args, ctx) => {
 			const row = getNoteRow(str(args, 'username'), str(args, 'id'));
 			if (!row || !canView(row, ctx.user?.username ?? null)) throw new ApiError(404, 'Note not found');
-			return rowToSnippet(row, { withBacklinks: true });
+			return rowToSnippet(row, { withBacklinks: true, viewer: ctx.user?.username ?? null });
 		}
 	},
 	{
@@ -318,7 +318,7 @@ function dispatch(msg: JsonRpcRequest, ctx: McpContext): JsonRpcResponse | null 
 				capabilities: { tools: { listChanged: false } },
 				serverInfo: SERVER_INFO,
 				instructions:
-					'Planet is a short-notes app. Read tools (get_user, list_notes, search_notes, global_stream) work anonymously; create/update/delete and follow_stream require an API token from Settings, sent as an Authorization: Bearer header.'
+					'Planet is a short-notes app. All tools require authentication: connect via OAuth, or send a personal API token from Settings as an Authorization: Bearer header. Read tools (get_user, list_notes, get_note, search_notes, global_stream) see notes as the authenticated user; create/update/delete and follow_stream act on their account.'
 			});
 
 		case 'notifications/initialized':

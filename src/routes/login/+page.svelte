@@ -1,6 +1,10 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	let { form }: { form?: { error?: string; identifier?: string } } = $props();
+	import type { PageData } from './$types';
+	let {
+		form,
+		data
+	}: { form?: { error?: string; identifier?: string }; data: PageData } = $props();
 	let submitting = $state(false);
 </script>
 
@@ -15,6 +19,7 @@
 		<h1>Welcome back</h1>
 		{#if form?.error}<div class="error">{form.error}</div>{/if}
 		<form method="POST" onsubmit={() => (submitting = true)}>
+			{#if data.next}<input type="hidden" name="next" value={data.next} />{/if}
 			<label>
 				<span>Username or email</span>
 				<input name="identifier" autocomplete="username" value={form?.identifier ?? ''} required />

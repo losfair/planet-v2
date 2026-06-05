@@ -51,6 +51,53 @@ export const migrations: Migration[] = [
 		name: 'user notes-page background image',
 		// URL of an image shown as the background of the user's public notes page.
 		up: (db) => db.exec(`ALTER TABLE users ADD COLUMN background_image TEXT;`)
+	},
+	{
+		version: 4,
+		name: 'OAuth 2.1 authorization server (for MCP)',
+		// Planet acts as both authorization server and resource server for its MCP
+		// endpoint. Clients register dynamically (RFC 7591), obtain a short-lived
+		// authorization code (PKCE, RFC 7636), then exchange it for access + refresh
+		// tokens. Only hashes of codes/tokens are stored.
+		up: (db) =>
+			db.exec(`
+				CREATE TABLE IF NOT EXISTS oauth_clients (
+					client_id          TEXT PRIMARY KEY,
+					client_secret_hash TEXT,
+					redirect_uris      TEXT NOT NULL,            -- JSON array of exact URIs
+					client_name        TEXT NOT NULL DEFAULT '',
+					token_auth_method  TEXT NOT NULL DEFAULT 'none',
+					scope              TEXT NOT NULL DEFAULT 'mcp',
+					created_at         INTEGER NOT NULL
+				);
+
+				CREATE TABLE IF NOT EXISTS oauth_codes (
+					code_hash      TEXT PRIMARY KEY,
+					client_id      TEXT NOT NULL,
+					username       TEXT NOT NULL,
+					redirect_uri   TEXT NOT NULL,
+					code_challenge TEXT NOT NULL,
+					scope          TEXT NOT NULL DEFAULT 'mcp',
+					resource       TEXT,
+					expires_at     INTEGER NOT NULL,
+					FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+				);
+
+				CREATE TABLE IF NOT EXISTS oauth_tokens (
+					access_hash   TEXT PRIMARY KEY,
+					refresh_hash  TEXT,
+					client_id     TEXT NOT NULL,
+					username      TEXT NOT NULL,
+					scope         TEXT NOT NULL DEFAULT 'mcp',
+					resource      TEXT,
+					expires_at    INTEGER NOT NULL,           -- access-token expiry
+					refresh_expires_at INTEGER,
+					created_at    INTEGER NOT NULL,
+					FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+				);
+				CREATE INDEX IF NOT EXISTS idx_oauth_tokens_refresh ON oauth_tokens (refresh_hash);
+				CREATE INDEX IF NOT EXISTS idx_oauth_tokens_user ON oauth_tokens (username);
+			`)
 	}
 ];
 

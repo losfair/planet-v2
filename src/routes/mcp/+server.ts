@@ -10,7 +10,7 @@ const CORS_HEADERS: Record<string, string> = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 	'Access-Control-Allow-Headers': 'Content-Type, Authorization, Mcp-Session-Id, Mcp-Protocol-Version',
-	'Access-Control-Expose-Headers': 'Mcp-Session-Id, Mcp-Protocol-Version'
+	'Access-Control-Expose-Headers': 'Mcp-Session-Id, Mcp-Protocol-Version, WWW-Authenticate'
 };
 
 function rpcError(code: number, message: string, status: number): Response {
@@ -20,12 +20,37 @@ function rpcError(code: number, message: string, status: number): Response {
 	});
 }
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+/**
+ * RFC 9728 §5.1 challenge: tell the client where to find this resource's
+ * metadata so it can discover the authorization server and start the OAuth
+ * flow. Returned for any unauthenticated MCP request.
+ */
+function unauthorized(origin: string): Response {
+	const metadataUrl = `${origin}/.well-known/oauth-protected-resource/mcp`;
+	return new Response(
+		JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Authentication required' } }),
+		{
+			status: 401,
+			headers: {
+				'content-type': 'application/json',
+				'WWW-Authenticate': `Bearer resource_metadata="${metadataUrl}"`,
+				...CORS_HEADERS
+			}
+		}
+	);
+}
+
+export const POST: RequestHandler = async ({ request, locals, url }) => {
 	// Streamable HTTP requires the client to accept JSON (and optionally SSE).
 	const accept = request.headers.get('accept') ?? '';
 	if (accept && !accept.includes('application/json') && !accept.includes('*/*')) {
 		return rpcError(-32600, 'Client must accept application/json', 406);
 	}
+
+	// The MCP endpoint requires authentication (PAT or OAuth access token). An
+	// unauthenticated request is challenged so OAuth-capable clients (Claude,
+	// ChatGPT) can discover the authorization server and obtain a token.
+	if (!locals.user) return unauthorized(url.origin);
 
 	let body: unknown;
 	try {

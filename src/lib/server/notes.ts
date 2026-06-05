@@ -33,7 +33,7 @@ export function noteTitle(markdown: string): string {
 	return text.length > 80 ? text.slice(0, 80) : text;
 }
 
-function forwardLinksOf(username: string, id: string): NoteLinkWithPosition[] {
+function forwardLinksOf(username: string, id: string, viewer: string | null): NoteLinkWithPosition[] {
 	const rows = db
 		.query<
 			{ to_username: string; to_id: string; position: number; text: string },
@@ -47,34 +47,41 @@ function forwardLinksOf(username: string, id: string): NoteLinkWithPosition[] {
 		fullId: r.to_id,
 		position: r.position,
 		text: r.text,
-		title: linkTitle(r.to_username, r.to_id)
+		title: linkTitle(r.to_username, r.to_id, viewer)
 	}));
 }
 
-function backlinksOf(username: string, id: string): NoteLink[] {
+function backlinksOf(username: string, id: string, viewer: string | null): NoteLink[] {
 	const rows = db
 		.query<{ from_username: string; from_id: string }, [string, string]>(
 			'SELECT DISTINCT from_username, from_id FROM note_links WHERE to_username = ? AND to_id = ?'
 		)
 		.all(username, id);
-	return rows.map((r) => ({
-		username: r.from_username,
-		fullId: r.from_id,
-		title: linkTitle(r.from_username, r.from_id)
-	}));
+	return rows.flatMap((r) => {
+		const row = getNoteRow(r.from_username, r.from_id);
+		if (!row || !canView(row, viewer)) return [];
+		return [
+			{
+				username: r.from_username,
+				fullId: r.from_id,
+				title: noteTitle(row.markdown) || undefined
+			}
+		];
+	});
 }
 
-function linkTitle(username: string, id: string): string | undefined {
+function linkTitle(username: string, id: string, viewer: string | null): string | undefined {
 	const row = getNoteRow(username, id);
 	if (!row) return undefined;
-	if (row.private) return undefined; // don't leak private titles
+	if (!canView(row, viewer)) return undefined; // don't leak private titles
 	return noteTitle(row.markdown) || undefined;
 }
 
 export function rowToSnippet(
 	row: NoteRow,
-	opts: { withBacklinks?: boolean } = {}
+	opts: { withBacklinks?: boolean; viewer?: string | null } = {}
 ): RenderableSnippet {
+	const viewer = opts.viewer ?? null;
 	const ann = db
 		.query<{ color: string | null }, [string, string]>(
 			'SELECT color FROM annotations WHERE username = ? AND note_id = ?'
@@ -87,11 +94,11 @@ export function rowToSnippet(
 		editCount: row.edit_count,
 		private: !!row.private,
 		markdown: row.markdown,
-		forwardLinks: forwardLinksOf(row.username, row.id),
+		forwardLinks: forwardLinksOf(row.username, row.id, viewer),
 		username: row.username
 	};
 	if (ann?.color) snippet.color = ann.color;
-	if (opts.withBacklinks) snippet.backlinks = backlinksOf(row.username, row.id);
+	if (opts.withBacklinks) snippet.backlinks = backlinksOf(row.username, row.id, viewer);
 	return snippet;
 }
 

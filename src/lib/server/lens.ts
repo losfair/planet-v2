@@ -411,7 +411,7 @@ export function runLensQuery(opts: {
 	}
 	const page = matched.slice(start, start + opts.limit);
 	const hasMore = start + opts.limit < matched.length;
-	const output = page.map((r) => rowToSnippet(r, { withBacklinks: true }));
+	const output = page.map((r) => rowToSnippet(r, { withBacklinks: true, viewer: opts.viewer }));
 	const nextCursor = hasMore
 		? encodeCursor({ ts: page[page.length - 1].real_ts, id: page[page.length - 1].id })
 		: null;

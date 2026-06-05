@@ -26,7 +26,9 @@ export function getSnippets(opts: {
 	if (opts.id) {
 		const row = getNoteRow(opts.username, opts.id);
 		const snippets: RenderableSnippet[] =
-			row && canView(row, opts.viewer) ? [rowToSnippet(row, { withBacklinks: true })] : [];
+			row && canView(row, opts.viewer)
+				? [rowToSnippet(row, { withBacklinks: true, viewer: opts.viewer })]
+				: [];
 		return { snippets, title: '', author, topNote: null, cursor: null };
 	}
 
@@ -46,7 +48,7 @@ export function getSnippets(opts: {
 	const rows = db.query<NoteRow, (string | number)[]>(sql).all(...params);
 	const hasMore = rows.length > opts.limit;
 	const page = rows.slice(0, opts.limit);
-	const snippets = page.map((r) => rowToSnippet(r, { withBacklinks: true }));
+	const snippets = page.map((r) => rowToSnippet(r, { withBacklinks: true, viewer: opts.viewer }));
 
 	let nextCursor: string | null = null;
 	if (hasMore) {
@@ -58,7 +60,9 @@ export function getSnippets(opts: {
 	let topNote: RenderableSnippet | null = null;
 	if (!cursor && user.top_note) {
 		const tn = getNoteRow(opts.username, user.top_note);
-		if (tn && canView(tn, opts.viewer)) topNote = rowToSnippet(tn, { withBacklinks: true });
+		if (tn && canView(tn, opts.viewer)) {
+			topNote = rowToSnippet(tn, { withBacklinks: true, viewer: opts.viewer });
+		}
 	}
 
 	return { snippets, title: '', author, topNote, cursor: nextCursor };
@@ -75,7 +79,7 @@ export function globalStream(cursorStr: string | undefined, limit: number) {
 	}
 	sql += ' ORDER BY real_ts DESC, id DESC LIMIT ?';
 	params.push(limit + 1);
-	return paginate(db.query<NoteRow, (string | number)[]>(sql).all(...params), limit);
+	return paginate(db.query<NoteRow, (string | number)[]>(sql).all(...params), limit, null);
 }
 
 /** Follow stream — public notes from followed users plus viewer's own notes. */
@@ -92,16 +96,17 @@ export function followStream(viewer: string, cursorStr: string | undefined, limi
 	}
 	sql += ' ORDER BY n.real_ts DESC, n.id DESC LIMIT ?';
 	params.push(limit + 1);
-	return paginate(db.query<NoteRow, (string | number)[]>(sql).all(...params), limit);
+	return paginate(db.query<NoteRow, (string | number)[]>(sql).all(...params), limit, viewer);
 }
 
 function paginate(
 	rows: NoteRow[],
-	limit: number
+	limit: number,
+	viewer: string | null
 ): { notes: RenderableSnippet[]; cursor: string | null } {
 	const hasMore = rows.length > limit;
 	const page = rows.slice(0, limit);
-	const notes = page.map((r) => rowToSnippet(r, { withBacklinks: true }));
+	const notes = page.map((r) => rowToSnippet(r, { withBacklinks: true, viewer }));
 	let cursor: string | null = null;
 	if (hasMore) {
 		const last = page[page.length - 1];

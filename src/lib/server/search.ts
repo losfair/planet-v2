@@ -56,7 +56,7 @@ export function searchNotes(opts: {
 	const rows = db.query<NoteRow, (string | number)[]>(sql).all(...params);
 	const hasMore = rows.length > opts.limit;
 	const page = rows.slice(0, opts.limit);
-	const notes = page.map((r) => rowToSnippet(r, { withBacklinks: true }));
+	const notes = page.map((r) => rowToSnippet(r, { withBacklinks: true, viewer: opts.viewer }));
 	const nextCursor = hasMore
 		? encodeCursor({ ts: page[page.length - 1].real_ts, id: page[page.length - 1].id })
 		: null;
