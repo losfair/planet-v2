@@ -168,6 +168,10 @@ curl "${origin}/api/v1/notes?username=$PLANET_USER" \\
 		<li>Token + refresh — <code>POST /oauth/token</code>. Access tokens last 1 hour; refresh tokens rotate.</li>
 	</ul>
 	<p class="note">
+		Authorized apps are listed under <strong>Settings → Connected Apps</strong>, where you can
+		disconnect any of them — revocation takes effect immediately.
+	</p>
+	<p class="note">
 		OAuth requires the endpoints to be reachable over HTTPS (or loopback) — deploy Planet behind
 		TLS for use with cloud clients.
 	</p>

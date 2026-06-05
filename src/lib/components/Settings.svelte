@@ -7,7 +7,7 @@
 
 	let { username, onClose }: { username: string; onClose: () => void } = $props();
 
-	let tab = $state<'account' | 'integration' | 'data'>('account');
+	let tab = $state<'account' | 'integration' | 'apps' | 'data'>('account');
 
 	// loaded user info
 	let loaded = $state(false);
@@ -150,6 +150,50 @@
 		loadJson<{ emails: string[] }>('/me/api/v1/emails').then((x) => (emails = x.emails));
 	}
 
+	// --- connected apps tab (OAuth grants) ---
+	interface OAuthConnection {
+		clientId: string;
+		clientName: string;
+		scope: string;
+		lastActive: number;
+		sessions: number;
+	}
+	let connections = $state<OAuthConnection[] | null>(null);
+
+	async function loadConnections() {
+		try {
+			connections = (
+				await loadJson<{ connections: OAuthConnection[] }>('/me/api/v1/oauth/connections')
+			).connections;
+		} catch {
+			connections = [];
+		}
+	}
+	$effect(() => {
+		if (tab === 'apps' && connections === null) loadConnections();
+	});
+
+	async function revokeApp(clientId: string, name: string) {
+		if (!confirm(`Disconnect ${name}? It will lose access immediately.`)) return;
+		try {
+			await loadJson('/me/api/v1/oauth/revoke', { clientId });
+			await loadConnections();
+			toast.show({ title: 'App disconnected', status: 'success' });
+		} catch (e) {
+			toast.show({ title: 'Error', description: String(e), status: 'error' });
+		}
+	}
+	async function revokeAllApps() {
+		if (!confirm('Disconnect all apps?')) return;
+		try {
+			await loadJson('/me/api/v1/oauth/revoke', { all: true });
+			await loadConnections();
+			toast.show({ title: 'All apps disconnected', status: 'success' });
+		} catch (e) {
+			toast.show({ title: 'Error', description: String(e), status: 'error' });
+		}
+	}
+
 	// --- export: ZIP of <note-id>.md files (matches the original) ---
 	let exportBusy = $state(false);
 	let exportProgress = $state(0);
@@ -226,6 +270,7 @@
 	<div class="tabs">
 		<button class:active={tab === 'account'} onclick={() => (tab = 'account')}>Account</button>
 		<button class:active={tab === 'integration'} onclick={() => (tab = 'integration')}>Integration</button>
+		<button class:active={tab === 'apps'} onclick={() => (tab = 'apps')}>Connected Apps</button>
 		<button class:active={tab === 'data'} onclick={() => (tab = 'data')}>Data</button>
 	</div>
 
@@ -305,6 +350,43 @@
 			{/if}
 		</section>
 		<div class="actions"><Button colorScheme="teal" loading={saving} onclick={save}>Save</Button></div>
+	{:else if tab === 'apps'}
+		<section>
+			<h3>Connected Apps</h3>
+			<p class="muted">
+				Apps you've authorized to access your planet over MCP via OAuth (e.g. AI assistants).
+				Disconnecting an app revokes its access immediately.
+			</p>
+			{#if connections === null}
+				<p class="muted sm">Loading…</p>
+			{:else if connections.length}
+				<table class="token-list">
+					<tbody>
+						{#each connections as c (c.clientId)}
+							<tr>
+								<td>
+									<div class="tname">{c.clientName}</div>
+									<div class="muted sm">
+										{c.scope} · {c.sessions} active session{c.sessions === 1 ? '' : 's'} · last active
+										{new Date(c.lastActive).toLocaleString()}
+									</div>
+								</td>
+								<td class="ta-right">
+									<button class="link inline revoke" onclick={() => revokeApp(c.clientId, c.clientName)}>
+										Disconnect
+									</button>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+				<div>
+					<button class="link inline revoke" onclick={revokeAllApps}>Disconnect all</button>
+				</div>
+			{:else}
+				<p class="muted sm">No connected apps.</p>
+			{/if}
+		</section>
 	{:else}
 		<section>
 			<h3>Export</h3>

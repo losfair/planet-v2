@@ -413,3 +413,58 @@ export function pruneExpired(): void {
 	db.query('DELETE FROM oauth_codes WHERE expires_at < ?').run(now);
 	db.query('DELETE FROM oauth_tokens WHERE refresh_expires_at < ?').run(now);
 }
+
+// --- user-facing grant management (Settings → Connected Apps) --------------
+
+export interface OAuthGrant {
+	clientId: string;
+	clientName: string;
+	scope: string;
+	/** Most recent token issuance for this app (≈ last activity). */
+	lastActive: number;
+	/** Number of live token sessions (one per active client instance). */
+	sessions: number;
+}
+
+/** List the apps a user has an active OAuth grant for, grouped by client. */
+export function listGrants(username: string): OAuthGrant[] {
+	const now = Date.now();
+	return db
+		.query<
+			{ client_id: string; client_name: string | null; scope: string; last_active: number; sessions: number },
+			[string, number, number]
+		>(
+			`SELECT t.client_id,
+			        c.client_name AS client_name,
+			        t.scope       AS scope,
+			        MAX(t.created_at) AS last_active,
+			        COUNT(*)          AS sessions
+			   FROM oauth_tokens t
+			   LEFT JOIN oauth_clients c ON c.client_id = t.client_id
+			  WHERE t.username = ? AND (t.expires_at > ? OR t.refresh_expires_at > ?)
+			  GROUP BY t.client_id
+			  ORDER BY last_active DESC`
+		)
+		.all(username, now, now)
+		.map((r) => ({
+			clientId: r.client_id,
+			clientName: r.client_name || r.client_id,
+			scope: r.scope,
+			lastActive: r.last_active,
+			sessions: r.sessions
+		}));
+}
+
+/** Revoke one app's access for a user (deletes all its tokens + pending codes). */
+export function revokeGrant(username: string, clientId: string): void {
+	db.query('DELETE FROM oauth_tokens WHERE username = ? AND client_id = ?').run(username, clientId);
+	db.query('DELETE FROM oauth_codes WHERE username = ? AND client_id = ?').run(username, clientId);
+	logEvent(username, 'oauth_revoke_grant', null, { clientId });
+}
+
+/** Revoke every app's access for a user. */
+export function revokeAllGrants(username: string): void {
+	db.query('DELETE FROM oauth_tokens WHERE username = ?').run(username);
+	db.query('DELETE FROM oauth_codes WHERE username = ?').run(username);
+	logEvent(username, 'oauth_revoke_all_grants', null, {});
+}
