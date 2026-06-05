@@ -13,7 +13,15 @@
 // Spec: https://modelcontextprotocol.io/specification/2025-06-18
 
 import type { SessionUser } from './auth';
-import { createNote, updateNote, deleteNote, ApiError } from './notes';
+import {
+	createNote,
+	updateNote,
+	deleteNote,
+	getNoteRow,
+	canView,
+	rowToSnippet,
+	ApiError
+} from './notes';
 import { getSnippets, globalStream, followStream } from './queries';
 import { searchNotes } from './search';
 import { getUser, buildApiUserInfo } from './users';
@@ -132,6 +140,25 @@ const TOOLS: Tool[] = [
 			});
 			if (!rsp) throw new ApiError(404, 'User not found');
 			return rsp;
+		}
+	},
+	{
+		name: 'get_note',
+		description:
+			'Fetch a single note by author and id, including its rendered HTML, markdown, forward links and backlinks. A private note is returned only when the token belongs to its author.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				username: { type: 'string', description: 'The author of the note.' },
+				id: { type: 'string', description: 'The note id (e.g. 2026-06-05-0000000cdd88).' }
+			},
+			required: ['username', 'id'],
+			additionalProperties: false
+		},
+		handler: (args, ctx) => {
+			const row = getNoteRow(str(args, 'username'), str(args, 'id'));
+			if (!row || !canView(row, ctx.user?.username ?? null)) throw new ApiError(404, 'Note not found');
+			return rowToSnippet(row, { withBacklinks: true });
 		}
 	},
 	{

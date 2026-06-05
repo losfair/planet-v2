@@ -51,6 +51,7 @@
 		'whoami',
 		'get_user',
 		'list_notes',
+		'get_note',
 		'search_notes',
 		'global_stream',
 		'follow_stream',
