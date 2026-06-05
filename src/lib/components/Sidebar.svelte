@@ -1,14 +1,19 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import TagList from './TagList.svelte';
 	import LensPanel from './LensPanel.svelte';
 	import { urlRegex } from '$lib/client/format';
 
 	let {
 		username,
-		description = ''
+		description = '',
+		defaultActive = 0,
+		allowUnselect = false
 	}: {
 		username: string;
 		description?: string;
+		defaultActive?: number | null;
+		allowUnselect?: boolean;
 	} = $props();
 
 	type Tab = { name: string; kind: 'tags' | 'lens' | 'author' };
@@ -20,10 +25,14 @@
 		].filter(Boolean) as Tab[]
 	);
 
-	let active = $state(0);
+	let active = $state<number | null>(untrack(() => defaultActive));
 	$effect(() => {
-		if (active >= tabs.length) active = 0;
+		if (active !== null && active >= tabs.length) active = defaultActive;
 	});
+
+	function selectTab(index: number) {
+		active = allowUnselect && active === index ? null : index;
+	}
 
 	// Linkify description text.
 	function linkify(text: string): { text: string; href?: string }[] {
@@ -44,16 +53,16 @@
 <div class="sidebar">
 	<div class="tablist">
 		{#each tabs as tab, i (tab.name)}
-			<button class="tab" class:selected={active === i} onclick={() => (active = i)}>{tab.name}</button
+			<button class="tab" class:selected={active === i} onclick={() => selectTab(i)}>{tab.name}</button
 			>
 		{/each}
 	</div>
 	<div class="panel">
-		{#if tabs[active]?.kind === 'tags'}
+		{#if active !== null && tabs[active]?.kind === 'tags'}
 			<TagList {username} />
-		{:else if tabs[active]?.kind === 'lens'}
+		{:else if active !== null && tabs[active]?.kind === 'lens'}
 			<LensPanel {username} />
-		{:else if tabs[active]?.kind === 'author'}
+		{:else if active !== null && tabs[active]?.kind === 'author'}
 			<div class="author">
 				<p class="bio">
 					{#each linkify(description) as part}{#if part.href}<a
