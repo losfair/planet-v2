@@ -47,6 +47,10 @@
 		navigator.clipboard.writeText(shareLink);
 		toast.show({ title: 'Link copied', description: 'Copied to clipboard.', status: 'success' });
 	}
+	function copyRef() {
+		navigator.clipboard.writeText(`@${snippet.username}/${snippet.id}`);
+		toast.show({ title: 'Ref copied', description: 'Copied to clipboard.', status: 'success' });
+	}
 	function openNote() {
 		notePopup.open(`${snippet.username}/${snippet.id}`);
 	}
@@ -140,6 +144,7 @@
 					<MenuItem onclick={openNote}>Open</MenuItem>
 					<MenuItem onclick={openGraph}>Graph</MenuItem>
 					<MenuItem onclick={copyLink}>Copy URL</MenuItem>
+					<MenuItem onclick={copyRef}>Copy Ref</MenuItem>
 					<MenuItem onclick={() => (screenshotOpen = true)}>Share as image</MenuItem>
 					{#if isOwner}
 						<MenuItem divider />
