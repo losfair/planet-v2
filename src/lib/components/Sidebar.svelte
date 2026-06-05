@@ -2,26 +2,22 @@
 	import { untrack } from 'svelte';
 	import TagList from './TagList.svelte';
 	import LensPanel from './LensPanel.svelte';
-	import { urlRegex } from '$lib/client/format';
 
 	let {
 		username,
-		description = '',
 		defaultActive = 0,
 		allowUnselect = false
 	}: {
 		username: string;
-		description?: string;
 		defaultActive?: number | null;
 		allowUnselect?: boolean;
 	} = $props();
 
-	type Tab = { name: string; kind: 'tags' | 'lens' | 'author' };
+	type Tab = { name: string; kind: 'tags' | 'lens' };
 	const tabs = $derived(
 		[
 			{ name: 'Tags', kind: 'tags' as const },
-			{ name: 'Lens', kind: 'lens' as const },
-			description ? { name: 'Author', kind: 'author' as const } : null
+			{ name: 'Lens', kind: 'lens' as const }
 		].filter(Boolean) as Tab[]
 	);
 
@@ -32,21 +28,6 @@
 
 	function selectTab(index: number) {
 		active = allowUnselect && active === index ? null : index;
-	}
-
-	// Linkify description text.
-	function linkify(text: string): { text: string; href?: string }[] {
-		const out: { text: string; href?: string }[] = [];
-		let last = 0;
-		let m: RegExpExecArray | null;
-		urlRegex.lastIndex = 0;
-		while ((m = urlRegex.exec(text))) {
-			out.push({ text: text.slice(last, m.index) });
-			out.push({ text: m[0], href: m[0] });
-			last = m.index + m[0].length;
-		}
-		out.push({ text: text.slice(last) });
-		return out;
 	}
 </script>
 
@@ -62,17 +43,6 @@
 			<TagList {username} />
 		{:else if active !== null && tabs[active]?.kind === 'lens'}
 			<LensPanel {username} />
-		{:else if active !== null && tabs[active]?.kind === 'author'}
-			<div class="author">
-				<p class="bio">
-					{#each linkify(description) as part}{#if part.href}<a
-								href={part.href}
-								target="_blank"
-								rel="noopener">{part.text}</a
-							>{:else}{part.text}{/if}{/each}
-				</p>
-				<p class="handle">@{username}</p>
-			</div>
 		{/if}
 	</div>
 </div>
@@ -102,23 +72,5 @@
 	}
 	.tab.selected {
 		background: var(--tab-bg);
-	}
-	.author {
-		background: var(--author-bg);
-		border-radius: var(--radius-lg);
-		padding: 20px;
-	}
-	.bio {
-		white-space: pre-line;
-		margin: 0;
-	}
-	.bio a {
-		text-decoration: underline;
-		color: var(--accent);
-	}
-	.handle {
-		font-size: 14px;
-		opacity: 0.6;
-		margin: 8px 0 0;
 	}
 </style>

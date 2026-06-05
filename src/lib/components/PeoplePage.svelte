@@ -298,7 +298,7 @@
 
 	<main class="content">
 		<div class="mobile-sidebar">
-			<Sidebar {username} description={publicInfo.description} defaultActive={null} allowUnselect />
+			<Sidebar {username} defaultActive={null} allowUnselect />
 		</div>
 
 		{#if primaryContent}
