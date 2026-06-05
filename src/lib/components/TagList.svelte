@@ -62,7 +62,4 @@
 		color: var(--text-secondary);
 		font-size: 15px;
 	}
-	.link {
-		color: var(--accent);
-	}
 </style>

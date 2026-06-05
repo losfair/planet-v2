@@ -15,6 +15,7 @@
 	let displayName = $state('');
 	let description = $state('');
 	let fontFamily = $state('sans-serif');
+	let backgroundImage = $state('');
 
 	// wayback machine
 	let wbWhere = $state('none');
@@ -30,6 +31,7 @@
 			displayName = u.displayName || '';
 			description = u.description || '';
 			fontFamily = u.contentFontFamily || 'sans-serif';
+			backgroundImage = u.backgroundImage || '';
 			if (u.waybackMachine) {
 				wbWhere = u.waybackMachine.where || 'none';
 				wbAk = u.waybackMachine.ak || '';
@@ -46,6 +48,7 @@
 				displayName,
 				description,
 				contentFontFamily: fontFamily || null,
+				backgroundImage: backgroundImage.trim() || null,
 				waybackMachine:
 					wbWhere === 'none' ? null : { where: wbWhere, ak: wbAk, sk: wbSk }
 			});
@@ -56,6 +59,33 @@
 			toast.show({ title: 'Error', description: String(e), status: 'error' });
 		} finally {
 			saving = false;
+		}
+	}
+
+	// --- background image upload (reuses the note image-upload ticket flow) ---
+	let bgInput = $state<HTMLInputElement>();
+	let bgUploading = $state(false);
+
+	async function uploadBackground(e: Event) {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+		bgUploading = true;
+		try {
+			const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+			const ticket = await loadJson<{
+				uploadUrl: string;
+				uploadHeaders: Record<string, string[]>;
+				finalUrl: string;
+			}>('/me/api/v1/upload_image', { fileType: ext, size: file.size });
+			const headers: Record<string, string> = {};
+			for (const [k, v] of Object.entries(ticket.uploadHeaders)) headers[k] = v[0];
+			await fetch(ticket.uploadUrl, { method: 'PUT', body: file, headers, credentials: 'include' });
+			backgroundImage = ticket.finalUrl;
+		} catch (err) {
+			toast.show({ title: 'Upload failed', description: String(err), status: 'error' });
+		} finally {
+			bgUploading = false;
+			if (bgInput) bgInput.value = '';
 		}
 	}
 
@@ -218,6 +248,38 @@
 					<option value="serif">serif</option>
 					<option value="monospace">monospace</option>
 				</select>
+			</div>
+			<div class="bg-setting">
+				<div class="row">
+					<div>
+						<div>Notes page background</div>
+						<div class="muted sm">Shown behind your notes. Upload an image or paste a URL.</div>
+					</div>
+					{#if backgroundImage}
+						<button class="link inline" onclick={() => (backgroundImage = '')}>Remove</button>
+					{/if}
+				</div>
+				{#if backgroundImage}
+					<div class="bg-preview" style="background-image: url('{backgroundImage}')"></div>
+				{/if}
+				<div class="bg-controls">
+					<input
+						class="bg-url"
+						type="url"
+						placeholder="https://example.com/image.jpg"
+						bind:value={backgroundImage}
+					/>
+					<Button colorScheme="gray" loading={bgUploading} onclick={() => bgInput?.click()}>
+						Upload
+					</Button>
+					<input
+						class="hidden-file"
+						type="file"
+						accept="image/*"
+						bind:this={bgInput}
+						onchange={uploadBackground}
+					/>
+				</div>
 			</div>
 			<div class="row">
 				<div>
@@ -423,6 +485,31 @@
 	.file {
 		font: inherit;
 		font-size: 14px;
+	}
+	.bg-setting {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+	.bg-preview {
+		width: 100%;
+		height: 120px;
+		border-radius: var(--radius-md);
+		border: 1px solid var(--border);
+		background-size: cover;
+		background-position: center;
+	}
+	.bg-controls {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+	.bg-url {
+		flex: 1;
+		min-width: 0;
+	}
+	.hidden-file {
+		display: none;
 	}
 	.actions {
 		display: flex;

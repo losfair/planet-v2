@@ -77,6 +77,8 @@ export type PublicUserInfo = {
 	displayName: string;
 	topNote: string;
 	contentFontFamily?: string;
+	/** URL of an image shown as the background of the user's notes page. */
+	backgroundImage?: string;
 };
 
 export type PrivateUserInfo = {

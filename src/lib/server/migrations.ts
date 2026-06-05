@@ -45,6 +45,12 @@ export const migrations: Migration[] = [
 				CREATE INDEX IF NOT EXISTS idx_api_tokens_user ON api_tokens (username, created_at DESC);
 				CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens (token_hash);
 			`)
+	},
+	{
+		version: 3,
+		name: 'user notes-page background image',
+		// URL of an image shown as the background of the user's public notes page.
+		up: (db) => db.exec(`ALTER TABLE users ADD COLUMN background_image TEXT;`)
 	}
 ];
 

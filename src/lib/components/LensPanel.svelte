@@ -57,9 +57,6 @@
 		color: var(--text-secondary);
 		font-size: 15px;
 	}
-	.link {
-		color: var(--accent);
-	}
 	.lens {
 		display: block;
 		border: 1px solid var(--border);

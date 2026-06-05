@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { loadJson } from '$lib/client/api';
 	import type { RenderableSnippet } from '$lib/types';
 	import NoteContent from './NoteContent.svelte';
@@ -10,7 +10,7 @@
 	let area = $state<HTMLDivElement>();
 	let qrEl = $state<HTMLDivElement>();
 	let imgUrl = $state('');
-	let displayName = $state(snippet.username);
+	let displayName = $state(untrack(() => snippet.username));
 
 	onMount(() => {
 		let cancelled = false;

@@ -11,9 +11,6 @@
 		<path d="M21 21l-4.3-4.3" />
 	</svg>
 	<input bind:value {placeholder} />
-	{#if value}
-		<button class="clear" onclick={() => (value = '')} aria-label="Clear">×</button>
-	{/if}
 </div>
 
 <style>
@@ -42,12 +39,5 @@
 		font-size: 15px;
 		flex: 1;
 		min-width: 0;
-	}
-	.clear {
-		background: none;
-		border: none;
-		color: var(--text-secondary);
-		cursor: pointer;
-		font-size: 18px;
 	}
 </style>

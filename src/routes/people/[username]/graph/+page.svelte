@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { loadJson, ApiError } from '$lib/client/api';
@@ -10,7 +10,7 @@
 	import NotePopupView from '$lib/components/NotePopupView.svelte';
 
 	let { data } = $props();
-	const username = data.username;
+	const username = untrack(() => data.username);
 	const displayName = $derived(data.publicInfo?.displayName || username);
 
 	// vis-network types are loaded dynamically (client-only).

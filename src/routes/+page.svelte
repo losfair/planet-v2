@@ -1,6 +1,7 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	let { data } = $props();
-	const user = data.user;
+	const user = untrack(() => data.user);
 	const year = new Date().getFullYear();
 </script>
 

@@ -10,6 +10,7 @@ export const POST: RequestHandler = (event) => {
 			description?: string;
 			noteViewV2?: boolean;
 			contentFontFamily?: string | null;
+			backgroundImage?: string | null;
 			waybackMachine?: { where: string; ak: string; sk: string } | null;
 		};
 		updateUser(me, body);

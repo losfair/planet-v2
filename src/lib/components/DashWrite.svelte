@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { loadJson } from '$lib/client/api';
 	import { toast } from '$lib/client/toast.svelte';
 	import Button from './Button.svelte';
@@ -22,8 +23,8 @@
 		onCancel?: () => void;
 	} = $props();
 
-	let content = $state(initialContent);
-	let isPublic = $state(initialPublic);
+	let content = $state(untrack(() => initialContent));
+	let isPublic = $state(untrack(() => initialPublic));
 	let saving = $state(false);
 	let uploading = $state(false);
 	let textarea = $state<HTMLTextAreaElement>();

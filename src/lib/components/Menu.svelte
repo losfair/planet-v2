@@ -33,7 +33,15 @@
 		{@render trigger()}
 	</button>
 	{#if open}
-		<div class="menu-list {align} {direction}" role="menu" onclick={() => (open = false)}>
+		<div
+			class="menu-list {align} {direction}"
+			role="menu"
+			tabindex="-1"
+			onclick={() => (open = false)}
+			onkeydown={(e) => {
+				if (e.key === 'Escape') open = false;
+			}}
+		>
 			{@render children()}
 		</div>
 	{/if}

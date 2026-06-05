@@ -16,6 +16,7 @@ export interface UserRow {
 	invited_at: number | null;
 	top_note: string | null;
 	content_font_family: string | null;
+	background_image: string | null;
 	note_view_v2: number;
 	wayback_json: string | null;
 	openapi_invalidate_before: number;
@@ -98,7 +99,8 @@ export function buildApiUserInfo(
 		description: user.description,
 		displayName: user.display_name,
 		topNote: user.top_note || '',
-		contentFontFamily: user.content_font_family || undefined
+		contentFontFamily: user.content_font_family || undefined,
+		backgroundImage: user.background_image || undefined
 	};
 	const base = {
 		username: user.username,
@@ -125,6 +127,7 @@ export function updateUser(
 		description?: string;
 		noteViewV2?: boolean;
 		contentFontFamily?: string | null;
+		backgroundImage?: string | null;
 		waybackMachine?: { where: string; ak: string; sk: string } | null;
 	}
 ): void {
@@ -147,6 +150,13 @@ export function updateUser(
 	if (input.contentFontFamily !== undefined) {
 		sets.push('content_font_family = ?');
 		params.push(input.contentFontFamily);
+	}
+	if (input.backgroundImage !== undefined) {
+		if (input.backgroundImage && input.backgroundImage.length > 2048) {
+			throw new ApiError(400, 'Background image URL too long');
+		}
+		sets.push('background_image = ?');
+		params.push(input.backgroundImage || null);
 	}
 	if (input.waybackMachine !== undefined) {
 		sets.push('wayback_json = ?');

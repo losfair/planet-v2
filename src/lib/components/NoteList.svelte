@@ -24,6 +24,7 @@
 	} = $props();
 
 	let numColumns = $state(1);
+	let grid = $state<HTMLDivElement>();
 
 	// FNV-1a 32-bit — same stable hash the original used for column placement.
 	function fnv1a(str: string): number {
@@ -36,19 +37,25 @@
 	}
 
 	function computeColumns() {
-		if (!browser) return;
-		const w = window.innerWidth;
-		if (w < 768) numColumns = 1;
-		else if (w >= 1600) numColumns = 4;
-		else if (w >= 1300) numColumns = 3;
-		else if (w >= 1050) numColumns = 2;
-		else numColumns = 1;
+		if (!browser || !grid) return;
+		// Mobile is always a single column.
+		if (window.innerWidth < 768) {
+			numColumns = 1;
+			return;
+		}
+		// Base the count on the actual content width (not the window), capped at 3,
+		// so the columns never get compressed when the content column is narrow.
+		const w = grid.clientWidth;
+		// Per-column minimum ~285px (raise these thresholds for wider columns).
+		numColumns = w >= 855 ? 3 : w >= 570 ? 2 : 1;
 	}
 
 	$effect(() => {
 		computeColumns();
-		window.addEventListener('resize', computeColumns);
-		return () => window.removeEventListener('resize', computeColumns);
+		if (!browser || !grid) return;
+		const ro = new ResizeObserver(computeColumns);
+		ro.observe(grid);
+		return () => ro.disconnect();
 	});
 
 	const columns = $derived.by(() => {
@@ -89,7 +96,7 @@
 	});
 </script>
 
-<div class="grid" style="grid-template-columns: repeat({numColumns}, 1fr)">
+<div bind:this={grid} class="grid" style="grid-template-columns: repeat({numColumns}, 1fr)">
 	{#each columns as col, ci (ci)}
 		<div class="col">
 			{#if ci === 0 && writeBox}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, onMount, type Snippet as SnippetT } from 'svelte';
+	import { getContext, onMount, tick, untrack, type Snippet as SnippetT } from 'svelte';
 	import { invalidate } from '$app/navigation';
 	import { loadJson, ApiError } from '$lib/client/api';
 	import { toast } from '$lib/client/toast.svelte';
@@ -21,6 +21,7 @@
 	import Button from './Button.svelte';
 	import UserMenu from './UserMenu.svelte';
 	import SkeletonText from './SkeletonText.svelte';
+	import LiquidGlass from './LiquidGlass.svelte';
 
 	let {
 		username,
@@ -52,9 +53,9 @@
 	);
 
 	// --- note list state ---
-	let notes = $state<RenderableSnippet[]>(data.snippets);
-	let cursor = $state<string | null>(data.cursor);
-	let topNote = $state<RenderableSnippet | null>(data.topNote);
+	let notes = $state<RenderableSnippet[]>(untrack(() => data.snippets));
+	let cursor = $state<string | null>(untrack(() => data.cursor));
+	let topNote = $state<RenderableSnippet | null>(untrack(() => data.topNote));
 	let moreBusy = $state(false);
 
 	$effect(() => {
@@ -91,11 +92,18 @@
 	}
 
 	// --- search ---
-	let searchText = $state(initialSearch);
+	let searchText = $state(untrack(() => initialSearch));
 	let searchResults = $state<RenderableSnippet[] | null>(null);
 	let searchCursor = $state<string | null>(null);
 	let searchBusy = $state(false);
 	let searchTimer: ReturnType<typeof setTimeout>;
+
+	// Floating search box (toggled from the top nav).
+	let searchOpen = $state(false);
+	let searchFloat = $state<HTMLElement>();
+	$effect(() => {
+		if (searchOpen) tick().then(() => searchFloat?.querySelector('input')?.focus());
+	});
 
 	$effect(() => {
 		const text = searchText.trim();
@@ -192,63 +200,101 @@
 
 <svelte:head><title>{displayName}'s Planet</title></svelte:head>
 
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape' && searchOpen) searchOpen = false;
+	}}
+	onclick={(e) => {
+		if (!searchOpen) return;
+		const t = e.target as HTMLElement;
+		// Clicking outside the box (and not the toggle button) closes it without clearing.
+		if (searchFloat?.contains(t) || t.closest('.icobtn')) return;
+		searchOpen = false;
+	}}
+/>
+
 <div class="people-root" style="--note-font: {noteFont}">
-	<!-- Desktop sidebar -->
-	<aside class="sidebar-fixed">
-		<div class="side-head">
-			<a class="logo" href="/" aria-label="Planet"><img src="/icon.svg" alt="" width="26" /></a>
-			<div class="who">
-				<a class="dn" href={`/people/${username}/notes`}>{displayName}</a>
-				<span class="handle">@{username}</span>
+	{#if publicInfo.backgroundImage}
+		<div class="bg-image" style="background-image: url('{publicInfo.backgroundImage}')"></div>
+	{/if}
+
+	<!-- Floating Liquid Glass top nav -->
+	<header class="topnav">
+		<LiquidGlass class="topnav-glass" radius={22} padding="7px 10px 7px 14px" style="width:100%;">
+			<div class="nav-inner">
+				<a class="logo" href="/" aria-label="Planet"><img src="/icon.svg" alt="" width="24" /></a>
+				<a class="who" href={`/people/${username}/notes`}>
+					<span class="dn">{displayName}</span>
+					<span class="handle">@{username}</span>
+				</a>
+				<span class="nav-spacer"></span>
+				<div class="nav-actions">
+					<button
+						class="ico icobtn"
+						class:active={searchOpen}
+						onclick={() => (searchOpen = !searchOpen)}
+						title="Search"
+						aria-label="Search"
+					>
+						<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<circle cx="11" cy="11" r="7" />
+							<path d="M21 21l-4.3-4.3" />
+						</svg>
+					</button>
+					{#if canFollow}
+						<Button
+							size="sm"
+							colorScheme="blue"
+							variant={isFollowing ? 'outline' : 'solid'}
+							loading={followBusy}
+							onclick={toggleFollow}>{isFollowing ? 'Following' : 'Follow'}</Button
+						>
+					{/if}
+					<a
+						class="ico"
+						href={`/feed/${username}.xml`}
+						target="_blank"
+						rel="noopener"
+						title="RSS"
+						aria-label="RSS"
+					>
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+							><circle cx="5" cy="19" r="2" /><path
+								d="M4 10a10 10 0 0110 10h-3A7 7 0 004 13zM4 4a16 16 0 0116 16h-3A13 13 0 004 7z"
+							/></svg
+						>
+					</a>
+					<a class="ico" href={`/people/${username}/graph`} title="Graph view" aria-label="Graph view">
+						<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+							<circle cx="5" cy="6" r="2.2" />
+							<circle cx="18" cy="7" r="2.2" />
+							<circle cx="12" cy="18" r="2.2" />
+							<path d="M7 6.6 10.5 16M16.2 8.4 13.2 16.4M7.1 6.2 15.9 6.9" />
+						</svg>
+					</a>
+					<UserMenu />
+				</div>
 			</div>
-			{#if canFollow}
-				<Button
-					size="sm"
-					colorScheme="blue"
-					variant={isFollowing ? 'outline' : 'solid'}
-					loading={followBusy}
-					onclick={toggleFollow}>{isFollowing ? 'Following' : 'Follow'}</Button
-				>
-			{/if}
-		</div>
-		<div class="side-scroll">
-			<Sidebar {username} description={publicInfo.description} />
-		</div>
-		<div class="side-foot">
-			<UserMenu wide />
-			<a
-				class="ico"
-				href={`/feed/${username}.xml`}
-				target="_blank"
-				rel="noopener"
-				title="RSS"
-				aria-label="RSS"
-			>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
-					><circle cx="5" cy="19" r="2" /><path
-						d="M4 10a10 10 0 0110 10h-3A7 7 0 004 13zM4 4a16 16 0 0116 16h-3A13 13 0 004 7z"
-					/></svg
-				>
-			</a>
-			<a class="ico" href={`/people/${username}/graph`} title="Graph view" aria-label="Graph view">
-				<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-					<circle cx="5" cy="6" r="2.2" />
-					<circle cx="18" cy="7" r="2.2" />
-					<circle cx="12" cy="18" r="2.2" />
-					<path d="M7 6.6 10.5 16M16.2 8.4 13.2 16.4M7.1 6.2 15.9 6.9" />
-				</svg>
-			</a>
-		</div>
+		</LiquidGlass>
+	</header>
+
+	<!-- Floating Liquid Glass left panel: tags + lens -->
+	<aside class="leftpanel">
+		<LiquidGlass class="leftpanel-glass" radius={22} padding="8px 6px" style="width:100%;">
+			<div class="panel-inner">
+				<Sidebar {username} />
+			</div>
+		</LiquidGlass>
 	</aside>
 
-	<!-- Mobile header -->
-	<div class="mobile-head">
-		<a class="logo" href="/"><img src="/icon.svg" alt="" width="26" /></a>
-		<span class="chev">›</span>
-		<a class="dn" href={`/people/${username}/notes`}>{displayName}</a>
-		<span class="spacer"></span>
-		<UserMenu />
-	</div>
+	<!-- Floating Liquid Glass search box (toggled from the nav) -->
+	{#if searchOpen}
+		<div class="search-float" bind:this={searchFloat}>
+			<LiquidGlass class="search-glass" radius={16} padding="5px 7px" style="width:100%;">
+				<Search bind:value={searchText} />
+			</LiquidGlass>
+		</div>
+	{/if}
 
 	<main class="content">
 		<div class="mobile-sidebar">
@@ -258,10 +304,6 @@
 		{#if primaryContent}
 			{@render primaryContent()}
 		{:else}
-			<div class="desktop-search">
-				<Search bind:value={searchText} />
-			</div>
-
 			{#if searchText.trim()}
 				<div class="search-results">
 					<div class="search-head">
@@ -315,38 +357,57 @@
 <style>
 	.people-root {
 		min-height: 100vh;
+		/* Layout geometry: the top nav and content share one "main" column that stays
+		   horizontally centered. Its width is constrained so the left gutter has room
+		   for the panel, which floats just to the LEFT of the column — never over it,
+		   never inside it. */
+		--panel-w: 280px;
+		--col-gap: 16px;
+		--edge: 12px;
+		--main-w: min(900px, calc(100% - 2 * (var(--edge) + var(--panel-w) + var(--col-gap))));
+		--panel-left: calc((100% - var(--main-w)) / 2 - var(--col-gap) - var(--panel-w));
 	}
-	.sidebar-fixed {
+
+	/* Full-viewport background image, behind content; refracts through the glass. */
+	.bg-image {
 		position: fixed;
-		top: 0;
-		left: 0;
-		width: 300px;
-		height: 100%;
-		background: var(--sidebar-bg);
-		display: flex;
-		flex-direction: column;
-		padding-left: 10px;
+		inset: 0;
+		z-index: -1;
+		background-size: cover;
+		background-position: center;
+		background-attachment: fixed;
 	}
-	.side-head {
+
+	/* ---- Floating top nav ---- */
+	.topnav {
+		position: fixed;
+		top: 12px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: var(--main-w);
+		z-index: 50;
+	}
+	.nav-inner {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		height: 60px;
-		padding-right: 20px;
+		gap: 12px;
+		width: 100%;
 	}
 	.logo {
 		display: flex;
+		flex-shrink: 0;
 	}
 	.who {
 		display: flex;
 		flex-direction: column;
 		font-size: 14px;
+		line-height: 1.15;
 		min-width: 0;
-		flex: 1;
-	}
-	.dn {
 		text-decoration: none;
 		color: var(--text);
+	}
+	.dn {
+		font-weight: 600;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -357,58 +418,79 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
-	.side-scroll {
+	.nav-spacer {
 		flex: 1;
-		overflow-y: auto;
-		padding-bottom: 20px;
-		padding-right: 10px;
 	}
-	.side-foot {
+	.nav-actions {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		height: 60px;
-		padding: 0 15px 0 0;
-		background: var(--sidebar-bg);
+		gap: 12px;
+		flex-shrink: 0;
 	}
-	.side-foot .ico {
-		color: var(--icon);
+	.nav-actions .ico {
+		color: var(--text);
+		opacity: 0.7;
 		display: inline-flex;
+		transition: opacity 0.15s ease;
 	}
-	.side-foot :global(.menu-root) {
-		flex: 1;
+	.nav-actions .ico:hover {
+		opacity: 1;
+	}
+	.nav-actions .icobtn {
+		background: none;
+		border: none;
+		padding: 0;
+		cursor: pointer;
+	}
+	.nav-actions .icobtn.active {
+		opacity: 1;
+		color: var(--accent);
 	}
 
-	.mobile-head {
-		display: none;
-		position: sticky;
-		top: 0;
-		z-index: 2;
-		align-items: center;
-		gap: 8px;
-		height: 56px;
-		padding: 0 10px;
-		background: var(--header-bg);
-		backdrop-filter: blur(5px);
-		box-shadow: var(--shadow-sm);
-		font-size: 18px;
+	/* ---- Floating search box: below the nav, on the top layer ---- */
+	.search-float {
+		position: fixed;
+		top: 70px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: min(560px, calc(100% - 24px));
+		z-index: 100;
 	}
-	.mobile-head .chev {
-		color: var(--chakra-colors-gray-600);
+	/* Let the search field sit directly on the glass. */
+	.search-float :global(.search) {
+		background: transparent;
+		border: none;
+		height: 38px;
 	}
-	.mobile-head .spacer {
-		flex: 1;
+	.search-float :global(.search:focus-within) {
+		outline: none;
 	}
+
+	/* ---- Floating left panel ---- */
+	.leftpanel {
+		position: fixed;
+		top: 74px;
+		/* Floats to the left of the main column. */
+		left: var(--panel-left);
+		width: var(--panel-w);
+		z-index: 40;
+	}
+	.panel-inner {
+		width: 100%;
+		max-height: calc(100vh - 98px);
+		overflow-y: auto;
+		padding: 4px 6px;
+	}
+
 	.mobile-sidebar {
 		display: none;
 	}
 
 	.content {
-		padding: 10px 10px 40px 310px;
-		max-width: 180ch;
-	}
-	.desktop-search {
-		margin-bottom: 8px;
+		/* Exactly the same column as the top nav: centered, same width. */
+		width: var(--main-w);
+		margin: 0 auto;
+		padding: 84px 4px 40px;
 	}
 	.search-head {
 		display: flex;
@@ -436,19 +518,25 @@
 	}
 
 	@media (max-width: 767px) {
-		.sidebar-fixed,
-		.desktop-search {
+		.leftpanel {
 			display: none;
 		}
-		.mobile-head {
-			display: flex;
+		.who .handle {
+			display: none;
 		}
 		.mobile-sidebar {
 			display: block;
 			margin-bottom: 12px;
 		}
+		.topnav {
+			left: 12px;
+			transform: none;
+			width: calc(100% - 24px);
+		}
 		.content {
-			padding: 10px;
+			width: auto;
+			margin: 0;
+			padding: 72px 6px 40px;
 		}
 	}
 </style>
