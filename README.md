@@ -27,6 +27,8 @@ while the front- and back-end logic were re-designed from scratch.
   in TypeScript (originally a Rust/WASM LALRPOP grammar)
 - Follow system, global / follow / user streams, notifications
 - Image upload via S3 presigned PUT (local-disk fallback for dev)
+- JSON HTTP API **+ MCP server** (`/mcp`, Model Context Protocol over Streamable
+  HTTP) so AI assistants can read and write notes using the same API tokens
 - RSS feed per user
 - Dark mode (system default + `Shift+D` toggle), responsive desktop/mobile
 

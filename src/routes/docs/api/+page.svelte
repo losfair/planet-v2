@@ -45,6 +45,19 @@
 	];
 
 	const origin = $derived(page.url.origin);
+
+	// Tools exposed by the MCP server at /mcp (see src/lib/server/mcp.ts).
+	const mcpTools = [
+		'whoami',
+		'get_user',
+		'list_notes',
+		'search_notes',
+		'global_stream',
+		'follow_stream',
+		'create_note',
+		'update_note',
+		'delete_note'
+	];
 </script>
 
 <svelte:head><title>API · Planet</title></svelte:head>
@@ -111,6 +124,29 @@ curl "${origin}/api/v1/notes?username=$PLANET_USER" \\
 			</div>
 		{/each}
 	</div>
+
+	<h2>MCP server</h2>
+	<p>
+		Planet also speaks the <a class="link" href="https://modelcontextprotocol.io" target="_blank" rel="noreferrer">Model Context Protocol</a>,
+		so AI assistants can read and write notes directly. The endpoint is a stateless
+		<em>Streamable HTTP</em> transport at <code>/mcp</code>, authenticated with the same API token
+		(<code>Authorization: Bearer &lt;token&gt;</code>). Read tools work anonymously; create / update /
+		delete and your follow feed require a token.
+	</p>
+	<pre><code>{`${origin}/mcp`}</code></pre>
+	<p class="note">Tools: {mcpTools.join(', ')}.</p>
+	<p>Point an MCP client (e.g. Claude) at the URL above with your token as a bearer header. With <code>mcp-remote</code>:</p>
+	<pre><code>{`{
+  "mcpServers": {
+    "planet": {
+      "command": "npx",
+      "args": [
+        "mcp-remote", "${origin}/mcp",
+        "--header", "Authorization: Bearer \${PLANET_TOKEN}"
+      ]
+    }
+  }
+}`}</code></pre>
 
 	<h2>Notes</h2>
 	<ul class="bullets">
