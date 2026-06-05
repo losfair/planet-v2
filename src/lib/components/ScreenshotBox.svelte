@@ -74,7 +74,7 @@
 	<div class="offscreen" aria-hidden="true">
 		<div class="card" bind:this={area}>
 			<div class="note-box">
-				<NoteContent {snippet} light />
+				<NoteContent {snippet} light expandedView />
 			</div>
 			<div class="footer">
 				<div class="meta">
