@@ -96,7 +96,7 @@
 	/>
 {:else}
 	<div class="notebox" class:pinned class:flat={flatBorder} ondblclick={openNote} role="article">
-		<NoteContent {snippet} />
+		<NoteContent {snippet} {expandedView} />
 
 		{#if !noBacklinks && snippet.backlinks?.length}
 			<table class="backlinks">
