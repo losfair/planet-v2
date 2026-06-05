@@ -197,7 +197,11 @@ export function updateNote(
 		).run(html, input.content, input.private ? 1 : 0, now, username, input.id);
 		reindex(username, input.id, input.content, input.private);
 		notify(username, input.id, input.content);
-		logEvent(username, 'update_note', input.id, { private: input.private });
+		logEvent(username, 'update_note', input.id, {
+			private: input.private,
+			previousContent: row.markdown,
+			previousPrivate: !!row.private
+		});
 	});
 }
 
@@ -215,7 +219,10 @@ export function deleteNote(username: string, id: string): void {
 			username,
 			id
 		);
-		logEvent(username, 'delete_note', id, {});
+		logEvent(username, 'delete_note', id, {
+			previousContent: row.markdown,
+			previousPrivate: !!row.private
+		});
 	});
 }
 
