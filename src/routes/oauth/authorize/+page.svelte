@@ -3,7 +3,16 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-	let busy = $state<'approve' | 'deny' | null>(null);
+	let pending = $state<'approve' | 'deny' | null>(null);
+
+	// Feedback is driven from the form's submit event (not the buttons' click
+	// handlers): disabling a submit button inside its own onclick cancels the
+	// native submission before it fires. By the time `submit` runs the browser
+	// has already committed to navigating, so updating state here is safe.
+	function onSubmit(e: SubmitEvent) {
+		const action = (e.submitter as HTMLButtonElement | null)?.formAction ?? '';
+		pending = action.includes('deny') ? 'deny' : 'approve';
+	}
 </script>
 
 <svelte:head><title>Authorize · Planet</title></svelte:head>
@@ -24,7 +33,7 @@
 			<li>Create, edit and delete notes on your behalf</li>
 		</ul>
 
-		<form method="POST">
+		<form method="POST" onsubmit={onSubmit}>
 			{#each Object.entries(data.params) as [k, v] (k)}
 				<input type="hidden" name={k} value={v} />
 			{/each}
@@ -34,16 +43,16 @@
 					formaction="?/approve"
 					colorScheme="teal"
 					size="lg"
-					loading={busy === 'approve'}
-					onclick={() => (busy = 'approve')}>Authorize</Button
+					loading={pending === 'approve'}
+					disabled={pending !== null}>Authorize</Button
 				>
 				<Button
 					type="submit"
 					formaction="?/deny"
 					colorScheme="gray"
 					size="lg"
-					loading={busy === 'deny'}
-					onclick={() => (busy = 'deny')}>Cancel</Button
+					loading={pending === 'deny'}
+					disabled={pending !== null}>Cancel</Button
 				>
 			</div>
 		</form>
