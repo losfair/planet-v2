@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { loadJson } from '$lib/client/api';
 	import { toast } from '$lib/client/toast.svelte';
-	import { colorMode } from '$lib/client/colorMode.svelte';
 	import { invalidateAll } from '$app/navigation';
 	import Button from './Button.svelte';
 	import type { FullUserInfo } from '$lib/types';
@@ -281,16 +280,6 @@
 					/>
 				</div>
 			</div>
-			<div class="row">
-				<div>
-					<div>Dark mode</div>
-					<div class="muted sm">Only applies to the current session.</div>
-				</div>
-				<label class="switch">
-					<input type="checkbox" checked={colorMode.current === 'dark'} onchange={() => colorMode.toggle()} />
-					<span class="slider"></span>
-				</label>
-			</div>
 		</section>
 
 		<div class="actions"><Button colorScheme="teal" loading={saving} onclick={save}>Save</Button></div>
@@ -557,41 +546,5 @@
 		cursor: pointer;
 		text-decoration: underline;
 		font: inherit;
-	}
-	.switch {
-		position: relative;
-		display: inline-block;
-		width: 36px;
-		height: 20px;
-		flex-shrink: 0;
-	}
-	.switch input {
-		opacity: 0;
-		width: 0;
-		height: 0;
-	}
-	.slider {
-		position: absolute;
-		inset: 0;
-		background: var(--chakra-colors-gray-300);
-		border-radius: 999px;
-		transition: 0.2s;
-	}
-	.slider::before {
-		content: '';
-		position: absolute;
-		height: 16px;
-		width: 16px;
-		left: 2px;
-		top: 2px;
-		background: #fff;
-		border-radius: 50%;
-		transition: 0.2s;
-	}
-	.switch input:checked + .slider {
-		background: var(--chakra-colors-teal-500);
-	}
-	.switch input:checked + .slider::before {
-		transform: translateX(16px);
 	}
 </style>

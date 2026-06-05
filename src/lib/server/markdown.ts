@@ -8,7 +8,6 @@ marked.use({
 	gfm: true,
 	breaks: true,
 	tokenizer: {
-		// @ts-expect-error returning false disables the bare-URL autolinker
 		url() {
 			return false;
 		}

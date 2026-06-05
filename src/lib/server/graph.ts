@@ -128,7 +128,7 @@ export function queryGraphForUser(
 
 	// Backlinks into the matched notes, from other users' visible notes.
 	for (const l of db
-		.query<{ from_username: string; from_id: string; to_id: string }, [string, string]>(
+		.query<{ from_username: string; from_id: string; to_id: string }, [string, string, string]>(
 			`SELECT l.from_username, l.from_id, l.to_id
 			 FROM note_links l JOIN notes n ON n.username = l.from_username AND n.id = l.from_id
 			 WHERE l.to_username = ? AND l.from_username <> ? AND (n.private = 0 OR n.username = ?)`

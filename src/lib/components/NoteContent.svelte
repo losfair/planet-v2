@@ -1,12 +1,9 @@
 <script lang="ts">
-	import { colorMode } from '$lib/client/colorMode.svelte';
 	import { hashTagRegex, atMentionRegex, urlRegex } from '$lib/client/format';
 	import type { RenderableSnippet } from '$lib/types';
 	import { notePopup } from '$lib/client/notePopup.svelte';
 
-	let { snippet, light = false }: { snippet: RenderableSnippet; light?: boolean } = $props();
-
-	const dark = $derived(!light && colorMode.current === 'dark');
+	let { snippet }: { snippet: RenderableSnippet; light?: boolean } = $props();
 
 	let container: HTMLDivElement;
 
@@ -109,9 +106,6 @@
 	});
 </script>
 
-<div
-	bind:this={container}
-	class="raw-snippet {dark ? 'raw-snippet-dark' : 'raw-snippet-light'}"
->
+<div bind:this={container} class="raw-snippet raw-snippet-light">
 	{@html snippet.content}
 </div>

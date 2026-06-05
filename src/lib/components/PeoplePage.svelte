@@ -298,7 +298,7 @@
 
 	<main class="content">
 		<div class="mobile-sidebar">
-			<Sidebar {username} description={publicInfo.description} showSearch bind:searchText />
+			<Sidebar {username} description={publicInfo.description} />
 		</div>
 
 		{#if primaryContent}

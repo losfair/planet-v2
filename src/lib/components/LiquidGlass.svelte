@@ -294,12 +294,6 @@
 			inset 0 0 20px -6px rgba(255, 255, 255, 0.5),
 			inset 0 0 0 0.5px rgba(255, 255, 255, 0.35);
 	}
-	:global([data-theme='dark']) .lg-sheen {
-		background: rgba(255, 255, 255, 0.04);
-		box-shadow:
-			inset 0 0 20px -6px rgba(255, 255, 255, 0.35),
-			inset 0 0 0 0.5px rgba(255, 255, 255, 0.18);
-	}
 	.lg-content {
 		position: relative;
 		z-index: 2;

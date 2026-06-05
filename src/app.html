@@ -9,23 +9,6 @@
 			href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap"
 			rel="stylesheet"
 		/>
-		<script>
-			// Apply color mode before paint to avoid flash. Mirrors Chakra's ColorModeScript.
-			(function () {
-				try {
-					var stored = localStorage.getItem('chakra-ui-color-mode');
-					var mode = stored;
-					if (!mode || mode === 'system') {
-						mode = window.matchMedia('(prefers-color-scheme: dark)').matches
-							? 'dark'
-							: 'light';
-					}
-					document.documentElement.setAttribute('data-theme', mode);
-				} catch (e) {
-					document.documentElement.setAttribute('data-theme', 'light');
-				}
-			})();
-		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

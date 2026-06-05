@@ -94,10 +94,6 @@
 		background: var(--chakra-colors-gray-100);
 		color: var(--chakra-colors-gray-800);
 	}
-	:global([data-theme='dark']) .solid.cs-gray {
-		background: rgba(255, 255, 255, 0.08);
-		color: #fff;
-	}
 	.solid.cs-teal {
 		background: var(--chakra-colors-teal-500);
 		color: #fff;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	let { form } = $props();
+	let { form }: { form?: { error?: string; identifier?: string } } = $props();
 	let submitting = $state(false);
 </script>
 

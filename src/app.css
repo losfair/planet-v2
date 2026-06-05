@@ -65,9 +65,8 @@
 		'Apple Color Emoji', 'Segoe UI Emoji';
 }
 
-/* Semantic tokens — light */
-:root,
-:root[data-theme='light'] {
+/* Semantic tokens */
+:root {
 	--bg: #fafafa;
 	--card-bg: #ffffff;
 	--sidebar-bg: var(--chakra-colors-gray-100);
@@ -81,22 +80,6 @@
 	--icon: #000000;
 	--hover-bg: var(--chakra-colors-gray-100);
 	--code-bg: var(--chakra-colors-gray-100);
-}
-
-:root[data-theme='dark'] {
-	--bg: #171923;
-	--card-bg: var(--chakra-colors-gray-800);
-	--sidebar-bg: var(--chakra-colors-gray-800);
-	--text: #ffffff;
-	--text-secondary: var(--chakra-colors-gray-400);
-	--border: rgba(255, 255, 255, 0.08);
-	--accent: var(--chakra-colors-teal-400);
-	--header-bg: rgba(0, 0, 0, 0.9);
-	--tab-bg: var(--chakra-colors-gray-600);
-	--author-bg: var(--chakra-colors-gray-700);
-	--icon: #ffffff;
-	--hover-bg: var(--chakra-colors-gray-700);
-	--code-bg: var(--chakra-colors-gray-700);
 }
 
 * {
@@ -205,12 +188,6 @@ a {
 .raw-snippet .at-mention:hover {
 	text-decoration-color: var(--chakra-colors-gray-500);
 }
-.raw-snippet-dark > blockquote {
-	border-left: 2px solid var(--chakra-colors-gray-500);
-	background: var(--chakra-colors-gray-700);
-	color: #edf2f7;
-	padding: 10px 10px;
-}
 .raw-snippet-light > blockquote {
 	border-left: 2px solid #4a5568;
 	background: #edf2f7;
@@ -231,9 +208,6 @@ a {
 }
 .raw-snippet-light > table td {
 	border-bottom: 1px solid var(--chakra-colors-gray-300);
-}
-.raw-snippet-dark > table td {
-	border-bottom: 1px solid var(--chakra-colors-gray-600);
 }
 .raw-snippet > table th:not(:last-child),
 .raw-snippet > table td:not(:last-child) {

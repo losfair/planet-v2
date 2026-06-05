@@ -1,25 +1,19 @@
 <script lang="ts">
-	import Search from './Search.svelte';
 	import TagList from './TagList.svelte';
 	import LensPanel from './LensPanel.svelte';
 	import { urlRegex } from '$lib/client/format';
 
 	let {
 		username,
-		description = '',
-		showSearch = false,
-		searchText = $bindable('')
+		description = ''
 	}: {
 		username: string;
 		description?: string;
-		showSearch?: boolean;
-		searchText?: string;
 	} = $props();
 
-	type Tab = { name: string; kind: 'search' | 'tags' | 'lens' | 'author' };
+	type Tab = { name: string; kind: 'tags' | 'lens' | 'author' };
 	const tabs = $derived(
 		[
-			showSearch ? { name: 'Search', kind: 'search' as const } : null,
 			{ name: 'Tags', kind: 'tags' as const },
 			{ name: 'Lens', kind: 'lens' as const },
 			description ? { name: 'Author', kind: 'author' as const } : null
@@ -55,9 +49,7 @@
 		{/each}
 	</div>
 	<div class="panel">
-		{#if tabs[active]?.kind === 'search'}
-			<Search bind:value={searchText} />
-		{:else if tabs[active]?.kind === 'tags'}
+		{#if tabs[active]?.kind === 'tags'}
 			<TagList {username} />
 		{:else if tabs[active]?.kind === 'lens'}
 			<LensPanel {username} />
