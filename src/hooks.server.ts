@@ -19,6 +19,29 @@ const WELL_KNOWN_CORS: Record<string, string> = {
 	'Access-Control-Allow-Headers': 'Authorization, Content-Type'
 };
 
+// Cross-origin form-POST protection, re-implemented here because the global
+// SvelteKit check (kit.csrf.checkOrigin) is disabled so we can exempt specific
+// machine-to-machine endpoints. Mirrors SvelteKit's behaviour: unsafe methods
+// carrying a browser "form" content type must originate from this same origin.
+// The OAuth token endpoint is exempt — it's authenticated by the authorization
+// code + PKCE verifier + client credentials, not by an ambient cookie, so
+// origin checking there only breaks legitimate server-to-server callers.
+const CSRF_EXEMPT_PATHS = new Set(['/oauth/token']);
+const FORM_CONTENT_TYPES = new Set([
+	'application/x-www-form-urlencoded',
+	'multipart/form-data',
+	'text/plain'
+]);
+
+function isCrossOriginFormPost(event: Parameters<Handle>[0]['event']): boolean {
+	const { request, url } = event;
+	if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return false;
+	const contentType = (request.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
+	if (!FORM_CONTENT_TYPES.has(contentType)) return false;
+	if (CSRF_EXEMPT_PATHS.has(url.pathname)) return false;
+	return request.headers.get('origin') !== url.origin;
+}
+
 function wellKnownMetadata(event: Parameters<Handle>[0]['event']): Response | null {
 	const { pathname, origin } = event.url;
 	const base = pathname.replace(/\/mcp$/, '');
@@ -38,6 +61,10 @@ function wellKnownMetadata(event: Parameters<Handle>[0]['event']): Response | nu
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+	if (isCrossOriginFormPost(event)) {
+		return new Response('Cross-site POST form submissions are forbidden', { status: 403 });
+	}
+
 	const meta = wellKnownMetadata(event);
 	if (meta) return meta;
 
